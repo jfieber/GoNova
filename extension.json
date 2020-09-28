@@ -16,5 +16,25 @@
     "process": true,
     "requests": false,
     "filesystem": "readwrite"
+  },
+  "commands": {
+    "editor": [
+      {
+        "title": "Go Format",
+        "command": "go.lspFormat",
+        "when": "editorHasFocus",
+        "filters": {
+          "syntaxes": ["go"]
+        }
+      },
+      {
+        "title": "Jump to Definition",
+        "command": "go.jumpToDefinition",
+        "when": "editorHasFocus",
+        "filters": {
+          "syntaxes": ["go"]
+        }
+      }
+    ]
   }
 }
