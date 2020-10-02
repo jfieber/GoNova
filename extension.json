@@ -20,14 +20,6 @@
   "commands": {
     "editor": [
       {
-        "title": "Go Format",
-        "command": "go.lspFormat",
-        "when": "editorHasFocus",
-        "filters": {
-          "syntaxes": ["go"]
-        }
-      },
-      {
         "title": "Jump to Definition",
         "command": "go.jumpToDefinition",
         "when": "editorHasFocus",
@@ -36,5 +28,21 @@
         }
       }
     ]
-  }
+  },
+  
+  "config": [
+    {
+      "key": "go-nova.enable-languageserver",
+      "title": "Enable language server (requires \"gopls\")",
+      "type": "boolean",
+      "default": false
+    },
+    {
+      "key": "go-nova.gopls-path",
+      "title": "Path to gopls",
+      "type": "string",
+      "placeholder": "gopls"
+    }
+  ]
+
 }
