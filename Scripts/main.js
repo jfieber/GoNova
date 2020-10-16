@@ -2,11 +2,14 @@ var langserver = null;
 
 exports.activate = function () {
     // Do work when the extension is activated
+    console.log('activate');
     langserver = new ExampleLanguageServer();
+    nova.commands.register('go.restartGopls', langserver.restart, langserver);
 };
 
 exports.deactivate = function () {
     // Clean up state before the extension is deactivated
+    console.log('deactivate');
     if (langserver) {
         langserver.deactivate();
         langserver = null;
@@ -17,7 +20,7 @@ class ExampleLanguageServer {
     constructor() {
         // Observe the configuration setting for the server's location, and restart the server on change
         nova.config.observe(
-            'example.language-server-path',
+            'go.gopls-path',
             function (path) {
                 this.start(path);
             },
@@ -37,7 +40,7 @@ class ExampleLanguageServer {
 
         // Use the default server path
         if (!path) {
-            path = '/usr/local/bin/example';
+            path = this.goplsPath() || '/usr/local/bin/example';
         }
 
         // Create the client
@@ -46,11 +49,11 @@ class ExampleLanguageServer {
         };
         var clientOptions = {
             // The set of document syntaxes for which the server is valid
-            syntaxes: ['javascript'],
+            syntaxes: ['go'],
         };
         var client = new LanguageClient(
-            'example-langserver',
-            'Example Language Server',
+            'gopls',
+            'Go Please',
             serverOptions,
             clientOptions
         );
@@ -77,6 +80,18 @@ class ExampleLanguageServer {
             nova.subscriptions.remove(this.languageClient);
             this.languageClient = null;
         }
+    }
+
+    restart() {
+        this.stop();
+        let self = this;
+        setTimeout(function () {
+            self.start();
+        }, 2000);
+    }
+
+    goplsPath() {
+        return nova.config.get('go.gopls-path', 'string');
     }
 }
 

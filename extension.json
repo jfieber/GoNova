@@ -8,6 +8,8 @@
 
     "main": "main.js",
 
+    "activationEvents": ["onLanguage:Go", "onWorkspaceContains:*.go"],
+
     "entitlements": {
         "process": true,
         "filesystem": "readonly"
@@ -15,10 +17,25 @@
 
     "config": [
         {
-            "key": "example.language-server-path",
+            "key": "go.gopls-path",
             "title": "Language Server Path",
             "type": "path",
-            "placeholder": "/usr/local/bin/example"
+            "default": "/Users/jfieber/go/bin/gopls",
+            "placeholder": "gopls",
+            "filetype": ["public.unix-executable"]
         }
-    ]
+    ],
+
+    "commands": {
+        "extensions": [
+            {
+                "title": "Restart gopls",
+                "command": "go.restartGopls",
+                "when": "editorHasFocus",
+                "filters": {
+                    "syntaxes": ["go"]
+                }
+            }
+        ]
+    }
 }
