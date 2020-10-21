@@ -2,10 +2,12 @@
     "identifier": "org.ursamaris.nova.go",
     "name": "Go",
     "organization": "John Fieber",
-    "description": "Lorem ipsum, dolor sit amet.",
+    "description": "Go for Nova",
     "version": "1.0",
     "categories": ["languages"],
-
+    "keywords": ["go", "golang"],
+    "license": "MIT",
+        
     "main": "main.js",
 
     "activationEvents": ["onLanguage:Go", "onWorkspaceContains:*.go"],
@@ -63,6 +65,14 @@
             }
         ],
         "editor": [
+            {
+                "title": "Jump to Definition",
+                "command": "go.jumpToDefinition",
+                "when": "editorHasFocus",
+                "filters": {
+                    "syntaxes": ["go"]
+                }
+            },
             {
                 "title": "Organize Imports",
                 "command": "go.organizeImports",

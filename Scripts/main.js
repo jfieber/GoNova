@@ -143,6 +143,11 @@ class GoLanguageServer {
 
             // Add extension commands dependent on gopls
             this.lcCommands.add(
+                nova.commands.register('go.jumpToDefinition', (editor) =>
+                    commands.JumpToDefinition(editor, client)
+                )
+            );
+            this.lcCommands.add(
                 nova.commands.register('go.organizeImports', (editor) =>
                     commands.OrganizeImports(editor, client)
                 )
