@@ -17,11 +17,20 @@
 
     "config": [
         {
+            "key": "go.gopls-enabled",
+            "title": "Enable Language Server",
+            "description": "Use the gopls language server for enhanced functionality. The gopls command should be installed in your search path, or you can specify the full path below.",
+            "link": "https://github.com/golang/tools/blob/master/gopls/README.md",
+            "type": "boolean",
+            "default": true
+        },
+        {
             "key": "go.gopls-path",
-            "title": "Language Server Path",
+            "title": "Language Server Command",
+            "link": "https://github.com/golang/tools/blob/master/gopls/README.md",
+            "description": "The command name to start the gopls language server. Use an absolute path here if gopls is not in your search path.",
             "type": "path",
-            "default": "/Users/jfieber/go/bin/gopls",
-            "placeholder": "gopls",
+            "default": "gopls",
             "filetype": ["public.unix-executable"]
         }
     ],
@@ -55,8 +64,16 @@
         ],
         "editor": [
             {
-                "title": "testLcCommand",
-                "command": "go.testLcCommand",
+                "title": "Organize Imports",
+                "command": "go.organizeImports",
+                "when": "editorHasFocus",
+                "filters": {
+                    "syntaxes": ["go"]
+                }
+            },
+            {
+                "title": "Format File",
+                "command": "go.formatFile",
                 "when": "editorHasFocus",
                 "filters": {
                     "syntaxes": ["go"]

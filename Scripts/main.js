@@ -8,21 +8,26 @@ function logger(message) {
     logFile.write(`${Date.now()}  ${message}\n`);
 }
 
+const commands = require('commands.js');
+
+var gls = null;
+
 exports.activate = function () {
     // Do work when the extension is activated.
     // GoLanguage server is a Disposable, so just register it with nova for the cleanup on deactivation.
     logger('Activate');
-    nova.subscriptions.add(new GoLanguageServer());
+    gls = new GoLanguageServer();
+    // nova.subscriptions.add(gls);
 };
 
 exports.deactivate = function () {
     // Clean up state before the extension is deactivated
     logger('Deactivate');
+    if (gls !== null) {
+        gls.dispose();
+        gls = null;
+    }
 };
-
-function testLcCommand() {
-    logger('testLcCommand');
-}
 
 class GoLanguageServer {
     constructor() {
@@ -43,10 +48,30 @@ class GoLanguageServer {
         );
 
         // Observe the configuration setting for the server's location, and restart the server on change
-        nova.config.observe(
+        nova.config.onDidChange(
             'go.gopls-path',
-            function (path) {
-                this.restart(path);
+            function (current, previous) {
+                // If the user deletes the value in the preferences and presses
+                // return or tab, it will revert to the default of 'gopls'.
+                // But on the way there, we get called once with with current === null
+                // and again with current === previous, both of which we need to ignore.
+                if (current && current != previous && this.goplsEnabled()) {
+                    console.info('Restarting gopls due to path change');
+                    this.restart();
+                }
+            },
+            this
+        );
+
+        nova.config.observe(
+            'go.gopls-enabled',
+            function (enabled) {
+                logger(`observing gopls to be ${enabled}`);
+                if (enabled) {
+                    this.start();
+                } else {
+                    this.stop();
+                }
             },
             this
         );
@@ -65,6 +90,11 @@ class GoLanguageServer {
             return;
         }
 
+        if (!this.goplsEnabled()) {
+            logger('gopls is not enabled');
+            return;
+        }
+
         if (!nova.workspace.path) {
             console.error('The Nova workspace has no path!');
             return;
@@ -74,9 +104,16 @@ class GoLanguageServer {
 
         // Create the client
         var serverOptions = {
-            path: this.goplsPath(),
+            path: this.goplsPath() || 'gopls',
             args: ['serve'],
         };
+
+        // An absolute path or use the search path?
+        if (serverOptions.path.charAt(0) !== '/') {
+            serverOptions.args.unshift(serverOptions.path);
+            serverOptions.path = '/usr/bin/env';
+        }
+
         if (nova.inDevMode()) {
             serverOptions.args = serverOptions.args.concat([
                 '-rpc.trace',
@@ -106,7 +143,14 @@ class GoLanguageServer {
 
             // Add extension commands dependent on gopls
             this.lcCommands.add(
-                nova.commands.register('go.testLcCommand', testLcCommand)
+                nova.commands.register('go.organizeImports', (editor) =>
+                    commands.OrganizeImports(editor, client)
+                )
+            );
+            this.lcCommands.add(
+                nova.commands.register('go.formatFile', (editor) =>
+                    commands.FormatFile(editor, client)
+                )
             );
         } catch (err) {
             // If the .start() method throws, it's likely because the path to the language server is invalid
@@ -122,6 +166,7 @@ class GoLanguageServer {
         if (this.languageClient) {
             this.languageClient.stop();
             this.lcCommands.dispose();
+            this.lcCommands = null;
             nova.subscriptions.remove(this.languageClient);
             this.languageClient = null;
         }
@@ -136,7 +181,15 @@ class GoLanguageServer {
         }, 2000);
     }
 
+    client() {
+        return this.languageClient;
+    }
+
     goplsPath() {
         return nova.config.get('go.gopls-path', 'string');
+    }
+
+    goplsEnabled() {
+        return nova.config.get('go.gopls-enabled', 'boolean');
     }
 }
