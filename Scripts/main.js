@@ -9,11 +9,11 @@ function logger(message) {
 }
 
 const commands = require('commands.js');
-const extManifest = require('../extension.json');
+const goplsConfig = require('../gopls.json');
 
 function goplsSettings() {
     let m = ["gopls-supported", "gopls-experimental"].map(section => {
-        let cs = extManifest.config.find(i => i.key === section);
+        let cs = goplsConfig.find(i => i.key === section);
         if (cs.children) {
             return cs.children.map(ci => ci.key);
         }
