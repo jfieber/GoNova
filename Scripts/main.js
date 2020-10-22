@@ -197,29 +197,14 @@ class GoLanguageServer {
 
     restart() {
         logger('GoLanguageServer.restart()');
-
         if (this.LanguageClient === null || this.languageClient === undefined) {
             this.start();
+            return;
         }
-
-        // Set up an interval to poll when the language client stops running.
-        let self = this;
-        let lc = this.languageClient;
-        let count = 20;
-        let i = setInterval(function() {
-            if (lc !== null && lc !== undefined && lc.running === 0) {
-                clearInterval(i);
-                self.start();
-            }
-            if (count < 1) {
-                clearInterval(i);
-                console.error("The LanguageClient did not exit");
-                return;
-            }
-            count = count - 1;
-        },10)
-
-        // Then tell it to stop
+        this.languageClient.onDidStop((err) => {
+            console.log(`gopls exit ${err}`);
+            this.start();
+        }, this);
         this.stop();
     }
 
