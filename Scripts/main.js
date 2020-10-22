@@ -117,6 +117,7 @@ class GoLanguageServer {
             return;
         }
 
+        // Things with the lifespan of the LanguageClient go here
         this.lcCommands = new CompositeDisposable();
 
         // Create the client
@@ -161,7 +162,7 @@ class GoLanguageServer {
             client.start();
 
             // Add the client to the subscriptions to be cleaned up
-            nova.subscriptions.add(client);
+            this.lcCommands.add(client);
             this.languageClient = client;
 
             // Add extension commands dependent on gopls
@@ -189,19 +190,37 @@ class GoLanguageServer {
         if (this.languageClient) {
             this.languageClient.stop();
             this.lcCommands.dispose();
-            this.lcCommands = null;
-            nova.subscriptions.remove(this.languageClient);
             this.languageClient = null;
+            this.lcCommands = null;
         }
     }
 
     restart() {
         logger('GoLanguageServer.restart()');
-        this.stop();
+
+        if (this.LanguageClient === null || this.languageClient === undefined) {
+            this.start();
+        }
+
+        // Set up an interval to poll when the language client stops running.
         let self = this;
-        setTimeout(function () {
-            self.start();
-        }, 2000);
+        let lc = this.languageClient;
+        let count = 20;
+        let i = setInterval(function() {
+            if (lc !== null && lc !== undefined && lc.running === 0) {
+                clearInterval(i);
+                self.start();
+            }
+            if (count < 1) {
+                clearInterval(i);
+                console.error("The LanguageClient did not exit");
+                return;
+            }
+            count = count - 1;
+        },10)
+
+        // Then tell it to stop
+        this.stop();
     }
 
     client() {
