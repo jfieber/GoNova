@@ -189,6 +189,7 @@ class GoLanguageServer {
         logger('GoLanguageServer.stop()');
         if (this.languageClient) {
             this.languageClient.stop();
+            this.lcCommands.remove(this.LanguageClient);
             this.lcCommands.dispose();
             this.languageClient = null;
             this.lcCommands = null;
