@@ -12,10 +12,10 @@ const commands = require('commands.js');
 const goplsConfig = require('../gopls.json');
 
 function goplsSettings() {
-    let m = ["gopls-supported", "gopls-experimental"].map(section => {
-        let cs = goplsConfig.find(i => i.key === section);
+    let m = ['gopls-supported', 'gopls-experimental'].map((section) => {
+        let cs = goplsConfig.find((i) => i.key === section);
         if (cs.children) {
-            return cs.children.map(ci => ci.key);
+            return cs.children.map((ci) => ci.key);
         }
         return [];
     });
@@ -87,7 +87,7 @@ class GoLanguageServer {
             },
             this
         );
-        
+
         // Restart on gopls configuration changes
         goplsSettings().forEach((opt) => {
             nova.config.onDidChange(opt, this.restart, this);
@@ -143,13 +143,13 @@ class GoLanguageServer {
         var clientOptions = {
             // The set of document syntaxes for which the server is valid
             syntaxes: ['go'],
-            initializationOptions: {}
-        }
+            initializationOptions: {},
+        };
         // Set gopls configuration
-        goplsSettings().forEach(opt => {
+        goplsSettings().forEach((opt) => {
             clientOptions.initializationOptions[opt] = nova.config.get(opt);
         });
-        
+
         var client = new LanguageClient(
             'gopls',
             'Go Please',

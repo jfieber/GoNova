@@ -7,7 +7,7 @@
     "categories": ["languages"],
     "keywords": ["go", "golang"],
     "license": "MIT",
-        
+
     "main": "main.js",
 
     "activationEvents": ["onLanguage:Go", "onWorkspaceContains:*.go"],
