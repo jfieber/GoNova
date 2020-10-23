@@ -78,6 +78,14 @@
                 "filters": {
                     "syntaxes": ["go"]
                 }
+            },
+            {
+                "title": "Find Type Definition",
+                "command": "go.findTypeDefinition",
+                "when": "editorHasFocus",
+                "filters": {
+                    "syntaxes": ["go"]
+                }
             }
         ]
     }

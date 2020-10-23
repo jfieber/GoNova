@@ -14,7 +14,6 @@ exports.OrganizeImports = function (editor, lclient) {
         lclient
             .sendRequest(cmd, cmdArgs)
             .then((response) => {
-                // console.info(`${cmd} response:`, response);
                 if (response !== null && response !== undefined) {
                     response.forEach((action) => {
                         if (action.kind === 'source.organizeImports') {
@@ -48,7 +47,6 @@ exports.FormatFile = function (editor, lclient) {
         lclient
             .sendRequest(cmd, cmdArgs)
             .then((response) => {
-                // console.info(`${cmd} response:`, response);
                 if (response !== null && response !== undefined) {
                     lsp.ApplyTextEdits(editor, response);
                 }
@@ -60,61 +58,43 @@ exports.FormatFile = function (editor, lclient) {
 };
 
 exports.FindReferences = function (editor, lclient) {
-    if (lclient) {
-        var selectedRange = editor.selectedRange;
-        selectedPosition =
-            (_a = lsp.RangeToLspRange(editor.document, selectedRange)) ===
-                null || _a === void 0
-                ? void 0
-                : _a.start;
-        if (!selectedPosition) {
-            nova.workspace.showWarningMessage(
-                "Couldn't figure out what you've selected."
-            );
-            return;
-        }
-        var cmd = 'textDocument/references';
-        var cmdArgs = {
-            textDocument: {
-                uri: editor.document.uri,
-            },
-            position: selectedPosition,
-            includeDeclaration: true,
-        };
-        lclient
-            .sendRequest(cmd, cmdArgs)
-            .then((response) => {
-                multiJump(response);
-            })
-            .catch(function (err) {
-                console.error(`${cmd} error!:`, err);
-            });
-    }
+    findX(editor, lclient, 'textDocument/references', {
+        includeDeclaration: true,
+    });
 };
 
 exports.FindImplementations = function (editor, lclient) {
+    findX(editor, lclient, 'textDocument/implementation');
+};
+
+exports.FindTypeDefinition = function (editor, lclient) {
+    findX(editor, lclient, 'textDocument/typeDefinition');
+};
+
+// Run assorted jump-to-related-entity commands
+function findX(editor, lclient, command, params) {
     if (lclient) {
-        var selectedRange = editor.selectedRange;
-        selectedPosition =
-            (_a = lsp.RangeToLspRange(editor.document, selectedRange)) ===
-                null || _a === void 0
-                ? void 0
-                : _a.start;
-        if (!selectedPosition) {
+        var origin = lsp.RangeToLspRange(editor.document, editor.selectedRange);
+        if (origin === undefined || !origin.start) {
             nova.workspace.showWarningMessage(
                 "Couldn't figure out what you've selected."
             );
             return;
         }
-        var cmd = 'textDocument/implementation';
+
         var cmdArgs = {
             textDocument: {
                 uri: editor.document.uri,
             },
-            position: selectedPosition,
+            position: origin.start,
         };
+
+        if (typeof params === 'object') {
+            Object.assign(cmdArgs, params);
+        }
+
         lclient
-            .sendRequest(cmd, cmdArgs)
+            .sendRequest(command, cmdArgs)
             .then((response) => {
                 multiJump(response);
             })
@@ -122,24 +102,13 @@ exports.FindImplementations = function (editor, lclient) {
                 console.error(`${cmd} error!:`, err);
             });
     }
-};
+}
 
+// Jump to an LSP Location
+// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#location
 function jumpTo(lspLocation) {
-    // lspLocation is:
-    //
-    // {
-    //     "uri":"file:///Volumes/adbe/go/src/git.corp.adobe.com/Stormcloud/assets-helper/stakeholder/handler.go",
-    //     "range": {
-    //         "start": {
-    //             "line":96,
-    //             "character":21
-    //         },
-    //         "end": {
-    //             "line":96,
-    //             "character":28
-    //         }
-    //     }
-    // }
+    if (lspLocation === undefined || lspLocation === null) {
+    }
     nova.workspace
         .openFile(lspLocation.uri)
         .then(function (targetEditor) {
@@ -175,6 +144,8 @@ function jumpTo(lspLocation) {
         });
 }
 
+// Jump to an LSP Location after presenting a list of Locations to the user.
+// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#location
 function multiJump(lspLocations) {
     if (!Array.isArray(lspLocations)) {
         console.error(`multiJump: input is not an array`);
@@ -191,7 +162,9 @@ function multiJump(lspLocations) {
     let labeled = lspLocations.map((target) => {
         target.title =
             target.uri.replace(`file://${nova.workspace.path}/`, '') +
-            ` ${target.range.start.line}:${target.range.start.character}`;
+            ` ${target.range.start.line + 1}:${
+                target.range.start.character + 1
+            }`;
         return target;
     });
 
@@ -200,11 +173,12 @@ function multiJump(lspLocations) {
         {},
         (selected) => {
             if (selected !== null) {
-                jumpTo(
-                    labeled.find((r) => {
-                        return r['title'] === selected;
-                    })
-                );
+                let target = labeled.find((r) => {
+                    return r['title'] === selected;
+                });
+                if (target !== undefined) {
+                    jumpTo(target);
+                }
             }
         }
     );

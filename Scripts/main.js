@@ -252,6 +252,11 @@ class GoLanguageServer {
                     commands.FindImplementations(editor, client)
                 )
             );
+            this.lcCommands.add(
+                nova.commands.register('go.findTypeDefinition', (editor) =>
+                    commands.FindTypeDefinition(editor, client)
+                )
+            );
         } catch (err) {
             // If the .start() method throws, it's likely because the path to the language server is invalid
 
