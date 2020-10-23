@@ -176,6 +176,16 @@ class GoLanguageServer {
                     commands.FormatFile(editor, client)
                 )
             );
+            this.lcCommands.add(
+                nova.commands.register('go.findReferences', (editor) =>
+                    commands.FindReferences(editor, client)
+                )
+            );
+            this.lcCommands.add(
+                nova.commands.register('go.findImplementations', (editor) =>
+                    commands.FindImplementations(editor, client)
+                )
+            );
         } catch (err) {
             // If the .start() method throws, it's likely because the path to the language server is invalid
 

@@ -62,6 +62,22 @@
                 "filters": {
                     "syntaxes": ["go"]
                 }
+            },
+            {
+                "title": "Find References",
+                "command": "go.findReferences",
+                "when": "editorHasFocus",
+                "filters": {
+                    "syntaxes": ["go"]
+                }
+            },
+            {
+                "title": "Find Implementations",
+                "command": "go.findImplementations",
+                "when": "editorHasFocus",
+                "filters": {
+                    "syntaxes": ["go"]
+                }
             }
         ]
     }
