@@ -84,10 +84,7 @@ exports.FindReferences = function (editor, lclient) {
         lclient
             .sendRequest(cmd, cmdArgs)
             .then((response) => {
-                console.info(`${cmd} response:`, response);
-                if (response !== null && response !== undefined) {
-                    jumpTo(response[0]);
-                }
+                multiJump(response);
             })
             .catch(function (err) {
                 console.error(`${cmd} error!:`, err);
@@ -119,10 +116,7 @@ exports.FindImplementations = function (editor, lclient) {
         lclient
             .sendRequest(cmd, cmdArgs)
             .then((response) => {
-                console.info(`${cmd} response:`, response);
-                if (response !== null && response !== undefined) {
-                    jumpTo(response[0]);
-                }
+                multiJump(response);
             })
             .catch(function (err) {
                 console.error(`${cmd} error!:`, err);
@@ -179,4 +173,39 @@ function jumpTo(lspLocation) {
         .catch(function (err) {
             console.info('Failed in the jump', err);
         });
+}
+
+function multiJump(lspLocations) {
+    if (!Array.isArray(lspLocations)) {
+        console.error(`multiJump: input is not an array`);
+        return;
+    }
+
+    // Jump directly of there is only one target
+    if (lspLocations.length === 1) {
+        jumpTo(lspLocations[0]);
+        return;
+    }
+
+    // Otherwise fix up the UI label for the choice palette
+    let labeled = lspLocations.map((target) => {
+        target.title =
+            target.uri.replace(`file://${nova.workspace.path}/`, '') +
+            ` ${target.range.start.line}:${target.range.start.character}`;
+        return target;
+    });
+
+    nova.workspace.showChoicePalette(
+        labeled.map((x) => x.title),
+        {},
+        (selected) => {
+            if (selected !== null) {
+                jumpTo(
+                    labeled.find((r) => {
+                        return r['title'] === selected;
+                    })
+                );
+            }
+        }
+    );
 }
