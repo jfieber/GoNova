@@ -1,16 +1,14 @@
-// console.log doesn't go anywhere during deactivation
-var logFile = null;
-function logger(message) {
-    if (!logFile) {
-        logFile = nova.fs.open('/tmp/gonova.log', 'a');
-        logFile.write('\n\n');
-    }
-    logFile.write(`${Date.now()}  ${message}\n`);
-}
+// The minimum supported Nova version
+const minNova = 2;
 
-const commands = require('commands.js');
+// Preferences for gopls
 const goplsConfig = require('../gopls.json');
 
+// Extension commands
+const commands = require('commands.js');
+
+// Return an array of configuration property names that should be
+// passed to the gopls initialization.
 function goplsSettings() {
     let m = ['gopls-supported', 'gopls-experimental'].map((section) => {
         let cs = goplsConfig.find((i) => i.key === section);
@@ -22,14 +20,79 @@ function goplsSettings() {
     return m.reduce((acc, cv) => acc.concat(cv));
 }
 
+// console.log doesn't go anywhere during deactivation
+var logFile = null;
+function logger(message) {
+    if (!nova.inDevMode()) {
+        if (!logFile) {
+            logFile = nova.fs.open('/tmp/gonova.log', 'a');
+            logFile.write('\n\n');
+        }
+        logFile.write(`${Date.now()}  ${message}\n`);
+    } else {
+        console.info(message);
+    }
+}
+
+function goEnv(name, cb) {
+    var options = {
+        args: ['go', 'env', name],
+    };
+    var process = new Process('/usr/bin/env', options);
+    lines = new Array();
+    process.onStdout(function (line) {
+        lines.push(line);
+    });
+    process.onDidExit(function (exitCode) {
+        if (exitCode !== 0) {
+            console.error(`${options.args.join(' ')} exited ${exitCode}`);
+        }
+        cb(lines.join('\n').trim());
+    });
+    process.start();
+}
+
+// Return the full path an external tool, or undefined if the
+// path isn't found, or isn't executable.
+function toolPath(tool) {
+        // First, just check the passed in argument.
+        if (nova.fs.access(tool, nova.fs.R_OK, nova.fs.X_OK)) {
+            return tool;
+        }
+
+        // No? Okay, then look in GOPATH, and then PATH
+        let search = [];
+        if (nova.environment['GOPATH']) {
+            search.push([nova.environment['GOPATH'], 'bin'].join('/'));
+        }
+        search = search.concat(nova.environment['PATH'].split(':'));
+        let found = search.find((val) => {
+            return nova.fs.access(
+                [val, tool].join('/'),
+                nova.fs.R_OK,
+                nova.fs.X_OK
+            );
+        });
+        if (found) {
+            return [found, tool].join('/');
+        }
+        return undefined;
+}
+
+// Language server instance
 var gls = null;
 
 exports.activate = function () {
     // Do work when the extension is activated.
     // GoLanguage server is a Disposable, so just register it with nova for the cleanup on deactivation.
     logger('Activate');
+    if (nova.version[0] < minNova) {
+        nova.workspace.showWarningMessage(
+            `Language Server functionality requires Nova ${minNova}.`
+        );
+        return;
+    }
     gls = new GoLanguageServer();
-    // nova.subscriptions.add(gls);
 };
 
 exports.deactivate = function () {
@@ -122,15 +185,18 @@ class GoLanguageServer {
 
         // Create the client
         var serverOptions = {
-            path: this.goplsPath() || 'gopls',
+            path: toolPath(nova.config.get('go.gopls-path', 'string')),
             args: ['serve'],
         };
 
-        // An absolute path or use the search path?
-        if (serverOptions.path.charAt(0) !== '/') {
-            serverOptions.args.unshift(serverOptions.path);
-            serverOptions.path = '/usr/bin/env';
+        if (serverOptions.path === undefined) {
+            nova.workspace.showWarningMessage(
+                `Cannot locate gopls.\n\nMake sure it installed in $GOPATH/bin, somewhere in $PATH, or provide the full path in the ${nova.extension.name} extension config.`
+            );
+            return;
         }
+
+        console.log('Using gopls:', serverOptions.path);
 
         if (nova.inDevMode()) {
             serverOptions.args = serverOptions.args.concat([
@@ -152,7 +218,7 @@ class GoLanguageServer {
 
         var client = new LanguageClient(
             'gopls',
-            'Go Please',
+            'gopls',
             serverOptions,
             clientOptions
         );
@@ -221,10 +287,6 @@ class GoLanguageServer {
 
     client() {
         return this.languageClient;
-    }
-
-    goplsPath() {
-        return nova.config.get('go.gopls-path', 'string');
     }
 
     goplsEnabled() {
