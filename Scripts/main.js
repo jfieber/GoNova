@@ -113,12 +113,6 @@ class GoLanguageServer {
         this.extCommands = new CompositeDisposable();
 
         this.extCommands.add(
-            nova.commands.register('go.startGopls', this.start, this)
-        );
-        this.extCommands.add(
-            nova.commands.register('go.stopGopls', this.stop, this)
-        );
-        this.extCommands.add(
             nova.commands.register('go.restartGopls', this.restart, this)
         );
 
