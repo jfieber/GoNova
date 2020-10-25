@@ -133,8 +133,8 @@ class GoLanguageServer {
     }
 
     dispose() {
-        this.stop().then(plog('disposed'));
-        this.extCommands.dispose();
+        this.stop().then(plog('dispose')).catch('dispose fail');
+        // this.extCommands.dispose();
     }
 
     start() {
