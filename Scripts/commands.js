@@ -1,6 +1,6 @@
 const lsp = require('lsp.js');
 
-exports.OrganizeImports = function (editor, lclient) {
+exports.OrganizeImports = (editor, lclient) => {
     if (lclient) {
         var cmd = 'textDocument/codeAction';
         var cmdArgs = {
@@ -29,13 +29,13 @@ exports.OrganizeImports = function (editor, lclient) {
                     });
                 }
             })
-            .catch(function (err) {
+            .catch((err) => {
                 console.error(`${cmd} error!:`, err);
             });
     }
 };
 
-exports.FormatFile = function (editor, lclient) {
+exports.FormatFile = (editor, lclient) => {
     if (lclient) {
         var cmd = 'textDocument/formatting';
         var cmdArgs = {
@@ -51,23 +51,23 @@ exports.FormatFile = function (editor, lclient) {
                     lsp.ApplyTextEdits(editor, response);
                 }
             })
-            .catch(function (err) {
+            .catch((err) => {
                 console.error(`${cmd} error!:`, err);
             });
     }
 };
 
-exports.FindReferences = function (editor, lclient) {
+exports.FindReferences = (editor, lclient) => {
     findX(editor, lclient, 'textDocument/references', {
         includeDeclaration: true,
     });
 };
 
-exports.FindImplementations = function (editor, lclient) {
+exports.FindImplementations = (editor, lclient) => {
     findX(editor, lclient, 'textDocument/implementation');
 };
 
-exports.FindTypeDefinition = function (editor, lclient) {
+exports.FindTypeDefinition = (editor, lclient) => {
     findX(editor, lclient, 'textDocument/typeDefinition');
 };
 
@@ -98,7 +98,7 @@ function findX(editor, lclient, command, params) {
             .then((response) => {
                 multiJump(response);
             })
-            .catch(function (err) {
+            .catch((err) => {
                 console.error(`${cmd} error!:`, err);
             });
     }
@@ -111,21 +111,21 @@ function jumpTo(lspLocation) {
     }
     nova.workspace
         .openFile(lspLocation.uri)
-        .then(function (targetEditor) {
+        .then((targetEditor) => {
             // When Nova first opens a file, the callback gets an undefined editor,
             // which is most likely a bug. Usually works the second time.
             if (targetEditor === undefined) {
                 console.error('Failed to get TextEditor, will retry');
                 nova.workspace
                     .openFile(lspLocation.uri)
-                    .then(function (targetEditor) {
+                    .then((targetEditor) => {
                         targetEditor.selectedRange = lsp.LspRangeToRange(
                             targetEditor.document,
                             lspLocation.range
                         );
                         targetEditor.scrollToCursorPosition();
                     })
-                    .catch(function (err) {
+                    .catch((err) => {
                         console.error(
                             'Failed to get text editor on the second try',
                             err
@@ -139,7 +139,7 @@ function jumpTo(lspLocation) {
                 targetEditor.scrollToCursorPosition();
             }
         })
-        .catch(function (err) {
+        .catch((err) => {
             console.info('Failed in the jump', err);
         });
 }

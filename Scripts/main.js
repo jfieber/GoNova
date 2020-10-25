@@ -23,16 +23,16 @@ function goplsSettings() {
 }
 
 function goEnv(name) {
-    var p = function (resolve, reject) {
+    var p = (resolve, reject) => {
         var options = {
             args: ['go', 'env', name],
         };
         var process = new Process('/usr/bin/env', options);
         lines = new Array();
-        process.onStdout(function (line) {
+        process.onStdout((line) => {
             lines.push(line);
         });
-        process.onDidExit(function (exitCode) {
+        process.onDidExit((exitCode) => {
             if (exitCode !== 0) {
                 reject(`${options.args.join(' ')} exited ${exitCode}`);
             }
@@ -79,14 +79,14 @@ function plog(prefix) {
 // Language server instance
 var gls = null;
 
-exports.activate = function () {
+exports.activate = () => {
     // Do work when the extension is activated.
     // GoLanguage server is a Disposable, so just register it with nova for the cleanup on deactivation.
     gls = new GoLanguageServer();
     gls.start().then(plog('activate')).catch(plog('activate fail'));
 };
 
-exports.deactivate = function () {
+exports.deactivate = () => {
     // Clean up state before the extension is deactivated
     if (gls !== null) {
         gls.dispose();
@@ -109,35 +109,23 @@ class GoLanguageServer {
         );
 
         // Observe the configuration setting for the server's location, and restart the server on change
-        nova.config.onDidChange(
-            exItem('gopls-path'),
-            function (current, previous) {
-                // If the user deletes the value in the preferences and presses
-                // return or tab, it will revert to the default of 'gopls'.
-                // But on the way there, we get called once with with current === null
-                // and again with current === previous, both of which we need to ignore.
-                if (current && current != previous && this.goplsEnabled()) {
-                    this.restart().then(plog('gopls path change'));
-                }
-            },
-            this
-        );
+        nova.config.onDidChange(exItem('gopls-path'), (current, previous) => {
+            // If the user deletes the value in the preferences and presses
+            // return or tab, it will revert to the default of 'gopls'.
+            // But on the way there, we get called once with with current === null
+            // and again with current === previous, both of which we need to ignore.
+            if (current && current != previous && this.goplsEnabled()) {
+                this.restart().then(plog('gopls path change'));
+            }
+        });
 
-        nova.config.onDidChange(
-            exItem('gopls-enabled'),
-            function (enabled) {
-                if (enabled) {
-                    this.start()
-                        .then(plog('enable'))
-                        .catch(plog('enable fail'));
-                } else {
-                    this.stop()
-                        .then(plog('disable'))
-                        .catch(plog('disable fail'));
-                }
-            },
-            this
-        );
+        nova.config.onDidChange(exItem('gopls-enabled'), (enabled) => {
+            if (enabled) {
+                this.start().then(plog('enable')).catch(plog('enable fail'));
+            } else {
+                this.stop().then(plog('disable')).catch(plog('disable fail'));
+            }
+        });
 
         // Restart on gopls configuration changes
         goplsSettings().forEach((opt) => {
@@ -151,13 +139,12 @@ class GoLanguageServer {
     }
 
     start() {
-        var t = this;
-        var p = function (resolve, reject) {
-            if (t.languageClient) {
+        return new Promise((resolve, reject) => {
+            if (this.languageClient) {
                 return resolve('gopls is already running');
             }
 
-            if (!t.goplsEnabled()) {
+            if (!this.goplsEnabled()) {
                 return reject('gopls is not enabled');
             }
 
@@ -166,7 +153,7 @@ class GoLanguageServer {
             }
 
             // Things with the lifespan of the LanguageClient go here
-            t.lcCommands = new CompositeDisposable();
+            this.lcCommands = new CompositeDisposable();
 
             // Create the client
             var serverOptions = {
@@ -216,34 +203,34 @@ class GoLanguageServer {
                 client.start();
 
                 // Add the client to the subscriptions to be cleaned up
-                t.lcCommands.add(client);
-                t.languageClient = client;
+                this.lcCommands.add(client);
+                this.languageClient = client;
 
                 // Add extension commands dependent on gopls
-                t.lcCommands.add(
+                this.lcCommands.add(
                     nova.commands.register(
                         exItem('cmd.organizeImports'),
                         (editor) => commands.OrganizeImports(editor, client)
                     )
                 );
-                t.lcCommands.add(
+                this.lcCommands.add(
                     nova.commands.register(exItem('cmd.formatFile'), (editor) =>
                         commands.FormatFile(editor, client)
                     )
                 );
-                t.lcCommands.add(
+                this.lcCommands.add(
                     nova.commands.register(
                         exItem('cmd.findReferences'),
                         (editor) => commands.FindReferences(editor, client)
                     )
                 );
-                t.lcCommands.add(
+                this.lcCommands.add(
                     nova.commands.register(
                         exItem('cmd.findImplementations'),
                         (editor) => commands.FindImplementations(editor, client)
                     )
                 );
-                t.lcCommands.add(
+                this.lcCommands.add(
                     nova.commands.register(
                         exItem('cmd.findTypeDefinition'),
                         (editor) => commands.FindTypeDefinition(editor, client)
@@ -256,7 +243,11 @@ class GoLanguageServer {
             // Look for the language server to be running.
             var tries = 10;
             var i = setInterval(() => {
-                if (t && t.languageClient && t.languageClient.running) {
+                if (
+                    this &&
+                    this.languageClient &&
+                    this.languageClient.running
+                ) {
                     clearInterval(i);
                     resolve('gopls is running');
                 }
@@ -265,15 +256,13 @@ class GoLanguageServer {
                 }
                 tries = tries - 1;
             }, 50);
-        };
-        return new Promise(p);
+        });
     }
 
     stop() {
-        var t = this;
-        var p = function (resolve) {
-            if (t.languageClient) {
-                t.languageClient.onDidStop((err) => {
+        return new Promise((resolve) => {
+            if (this.languageClient) {
+                this.languageClient.onDidStop((err) => {
                     if (err) {
                         // As of Nova 2.0, gopls does not cleanly shut down
                         // because Nova sends an empty parameters object to
@@ -283,24 +272,21 @@ class GoLanguageServer {
                     }
                     resolve('gopls stopped');
                 });
-                t.languageClient.stop();
-                t.lcCommands.remove(t.languageClient);
-                t.lcCommands.dispose();
-                t.languageClient = null;
-                t.lcCommands = null;
+                this.languageClient.stop();
+                this.lcCommands.remove(this.languageClient);
+                this.lcCommands.dispose();
+                this.languageClient = null;
+                this.lcCommands = null;
             } else {
                 resolve('gopls is not running');
             }
-        };
-        return new Promise(p);
+        });
     }
 
     restart() {
-        var t = this;
-        return t
-            .stop()
+        return this.stop()
             .then(() => {
-                return t.start();
+                return this.start();
             })
             .then(plog('restart'))
             .catch(plog('restart fail'));

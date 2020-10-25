@@ -1,6 +1,6 @@
 // Turn a Nova start-end range to an LSP row-column range.
 // From https://github.com/apexskier/nova-typescript
-exports.RangeToLspRange = function (document, range) {
+exports.RangeToLspRange = (document, range) => {
     const fullContents = document.getTextInRange(new Range(0, document.length));
     let chars = 0;
     let startLspRange;
@@ -25,7 +25,7 @@ exports.RangeToLspRange = function (document, range) {
 
 // Turn an LSP row-column range to a Nova start-end range.
 // From https://github.com/apexskier/nova-typescript
-exports.LspRangeToRange = function (document, range) {
+exports.LspRangeToRange = (document, range) => {
     const fullContents = document.getTextInRange(new Range(0, document.length));
     let rangeStart = 0;
     let rangeEnd = 0;
@@ -47,7 +47,7 @@ exports.LspRangeToRange = function (document, range) {
 
 // Apply a TextDocumentEdit
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentEdit
-exports.ApplyTextDocumentEdit = function (tde) {
+exports.ApplyTextDocumentEdit = (tde) => {
     if (tde && tde.textDocument && tde.edits) {
         // Obtain a Nova TextEditor for the document
         nova.workspace
@@ -65,7 +65,7 @@ exports.ApplyTextDocumentEdit = function (tde) {
 
 // Apply a TextEdit[]
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textEdit
-exports.ApplyTextEdits = function (editor, edits) {
+exports.ApplyTextEdits = (editor, edits) => {
     editor
         .edit((tee) => {
             var shift = 0;
