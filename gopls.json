@@ -1,6 +1,6 @@
 [
     {
-        "key": "go.gopls-enabled",
+        "key": "org.ursamaris.nova.go.gopls-enabled",
         "title": "Enable Language Server",
         "description": "Use the gopls language server for enhanced functionality. The gopls command should be installed in your search path, or you can specify the full path below.",
         "link": "https://github.com/golang/tools/blob/master/gopls/README.md",
@@ -8,7 +8,7 @@
         "default": true
     },
     {
-        "key": "go.gopls-path",
+        "key": "org.ursamaris.nova.go.gopls-path",
         "title": "Language Server Command",
         "link": "https://github.com/golang/tools/blob/master/gopls/README.md",
         "description": "The command name to start the gopls language server. Use an absolute path here if gopls is not in your search path.",
@@ -23,13 +23,13 @@
         "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#officially-supported",
         "children": [
             {
-                "key": "usePlaceholders",
+                "key": "org.ursamaris.nova.go.gopls.usePlaceholders",
                 "description": "Enables placeholders for function parameters or struct fields in completion responses.",
                 "type": "boolean",
                 "default": false
             },
             {
-                "key": "hoverKind",
+                "key": "org.ursamaris.nova.go.gopls.hoverKind",
                 "description": "Controls the information that appears in the hover text. SingleLine and Structured are intended for use only by authors of editor plugins.",
                 "type": "enum",
                 "values": [
@@ -42,7 +42,7 @@
                 "default": "FullDocumentation"
             },
             {
-                "key": "linkTarget",
+                "key": "org.ursamaris.nova.go.gopls.linkTarget",
                 "description": "Controls where documentation links go.",
                 "type": "enum",
                 "values": ["godoc.org", "pkg.go.dev"],
@@ -50,13 +50,13 @@
                 "allowCustom": true
             },
             {
-                "key": "local",
+                "key": "org.ursamaris.nova.go.gopls.local",
                 "description": "The equivalent of the goimports -local flag, which puts imports beginning with this string after 3rd-party packages. It should be the prefix of the import path whose imports should be grouped separately.",
                 "type": "string",
                 "default": ""
             },
             {
-                "key": "gofumpt",
+                "key": "org.ursamaris.nova.go.gopls.gofumpt",
                 "description": "Use gofumpt for formatting",
                 "type": "boolean",
                 "default": false
@@ -70,52 +70,52 @@
         "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#experimental",
         "children": [
             {
-                "key": "completionDocumentation",
+                "key": "org.ursamaris.nova.go.gopls.completionDocumentation",
                 "description": "Enable documentation with completion results",
                 "type": "boolean",
                 "default": true
             },
             {
-                "key": "completeUnimported",
+                "key": "org.ursamaris.nova.go.gopls.completeUnimported",
                 "description": "Enable completion for packages that you do not currently imported",
                 "type": "boolean",
                 "default": true
             },
             {
-                "key": "deepCompletion",
+                "key": "org.ursamaris.nova.go.gopls.deepCompletion",
                 "description": "Enable the ability to return completions from deep inside relevant entities, rather than just the locally accessible ones.",
                 "type": "boolean",
                 "default": true
             },
             {
-                "key": "matcher",
+                "key": "org.ursamaris.nova.go.gopls.matcher",
                 "description": "Sets the algorithm that is used when calculating completion candidates.",
                 "type": "enum",
                 "values": ["CaseInsensitive", "CaseSensitive", "Fuzzy"],
                 "default": "Fuzzy"
             },
             {
-                "key": "symbolMatcher",
+                "key": "org.ursamaris.nova.go.gopls.symbolMatcher",
                 "description": "Sets the algorithm that is used when finding workspace symbols.",
                 "type": "enum",
                 "values": ["CaseInsensitive", "CaseSensitive", "Fuzzy"],
                 "default": "Fuzzy"
             },
             {
-                "key": "symbolStyle",
+                "key": "org.ursamaris.nova.go.gopls.symbolStyle",
                 "description": "Controls how symbols are qualified in symbol responses.",
                 "type": "enum",
                 "values": ["Dynamic", "Full", "Package"],
                 "default": "Package"
             },
             {
-                "key": "linksInHover",
+                "key": "org.ursamaris.nova.go.gopls.linksInHover",
                 "description": "Toggles the presence of links to documentation in hover.",
                 "type": "boolean",
                 "default": true
             },
             {
-                "key": "importShortcut",
+                "key": "org.ursamaris.nova.go.gopls.importShortcut",
                 "description": "Specifies whether import statements should link to documentation or go to definitions.",
                 "type": "enum",
                 "values": ["Both", "Definition", "Link"],
@@ -124,5 +124,3 @@
         ]
     }
 ]
-
-

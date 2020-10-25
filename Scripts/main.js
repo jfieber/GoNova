@@ -4,6 +4,11 @@ const goplsConfig = require('../gopls.json');
 // Extension commands
 const commands = require('commands.js');
 
+// Append an extension config/command name to the extension prefix
+function exItem(name) {
+    return [nova.extension.identifier, name].join('.');
+}
+
 // Return an array of configuration property names that should be
 // passed to the gopls initialization.
 function goplsSettings() {
@@ -96,12 +101,16 @@ class GoLanguageServer {
         this.extCommands = new CompositeDisposable();
 
         this.extCommands.add(
-            nova.commands.register('go.restartGopls', this.restart, this)
+            nova.commands.register(
+                exItem('cmd.restartGopls'),
+                this.restart,
+                this
+            )
         );
 
         // Observe the configuration setting for the server's location, and restart the server on change
         nova.config.onDidChange(
-            'go.gopls-path',
+            exItem('gopls-path'),
             function (current, previous) {
                 // If the user deletes the value in the preferences and presses
                 // return or tab, it will revert to the default of 'gopls'.
@@ -115,12 +124,16 @@ class GoLanguageServer {
         );
 
         nova.config.onDidChange(
-            'go.gopls-enabled',
+            exItem('gopls-enabled'),
             function (enabled) {
                 if (enabled) {
-                    this.start().then(plog('enable')).catch(plog('enable fail'));
+                    this.start()
+                        .then(plog('enable'))
+                        .catch(plog('enable fail'));
                 } else {
-                    this.stop().then(plog('disable')).catch(plog('disable fail'));
+                    this.stop()
+                        .then(plog('disable'))
+                        .catch(plog('disable fail'));
                 }
             },
             this
@@ -157,7 +170,7 @@ class GoLanguageServer {
 
             // Create the client
             var serverOptions = {
-                path: toolPath(nova.config.get('go.gopls-path', 'string')),
+                path: toolPath(nova.config.get(exItem('gopls-path'), 'string')),
                 args: ['serve'],
             };
 
@@ -185,7 +198,10 @@ class GoLanguageServer {
             };
             // Set gopls configuration
             goplsSettings().forEach((opt) => {
-                clientOptions.initializationOptions[opt] = nova.config.get(opt);
+                let initItem = opt.replace(exItem('gopls.'), '');
+                clientOptions.initializationOptions[initItem] = nova.config.get(
+                    opt
+                );
             });
 
             var client = new LanguageClient(
@@ -205,28 +221,32 @@ class GoLanguageServer {
 
                 // Add extension commands dependent on gopls
                 t.lcCommands.add(
-                    nova.commands.register('go.organizeImports', (editor) =>
-                        commands.OrganizeImports(editor, client)
+                    nova.commands.register(
+                        exItem('cmd.organizeImports'),
+                        (editor) => commands.OrganizeImports(editor, client)
                     )
                 );
                 t.lcCommands.add(
-                    nova.commands.register('go.formatFile', (editor) =>
+                    nova.commands.register(exItem('cmd.formatFile'), (editor) =>
                         commands.FormatFile(editor, client)
                     )
                 );
                 t.lcCommands.add(
-                    nova.commands.register('go.findReferences', (editor) =>
-                        commands.FindReferences(editor, client)
+                    nova.commands.register(
+                        exItem('cmd.findReferences'),
+                        (editor) => commands.FindReferences(editor, client)
                     )
                 );
                 t.lcCommands.add(
-                    nova.commands.register('go.findImplementations', (editor) =>
-                        commands.FindImplementations(editor, client)
+                    nova.commands.register(
+                        exItem('cmd.findImplementations'),
+                        (editor) => commands.FindImplementations(editor, client)
                     )
                 );
                 t.lcCommands.add(
-                    nova.commands.register('go.findTypeDefinition', (editor) =>
-                        commands.FindTypeDefinition(editor, client)
+                    nova.commands.register(
+                        exItem('cmd.findTypeDefinition'),
+                        (editor) => commands.FindTypeDefinition(editor, client)
                     )
                 );
             } catch (err) {
@@ -291,6 +311,6 @@ class GoLanguageServer {
     }
 
     goplsEnabled() {
-        return nova.config.get('go.gopls-enabled', 'boolean');
+        return nova.config.get(exItem('gopls-enabled'), 'boolean');
     }
 }

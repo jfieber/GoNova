@@ -24,7 +24,7 @@
         "extensions": [
             {
                 "title": "Restart Go Language Server",
-                "command": "go.restartGopls",
+                "command": "org.ursamaris.nova.go.cmd.restartGopls",
                 "when": "editorHasFocus",
                 "filters": {
                     "syntaxes": ["go"]
@@ -34,7 +34,7 @@
         "editor": [
             {
                 "title": "Organize Imports",
-                "command": "go.organizeImports",
+                "command": "org.ursamaris.nova.go.cmd.organizeImports",
                 "when": "editorHasFocus",
                 "filters": {
                     "syntaxes": ["go"]
@@ -42,7 +42,7 @@
             },
             {
                 "title": "Format File",
-                "command": "go.formatFile",
+                "command": "org.ursamaris.nova.go.cmd.formatFile",
                 "when": "editorHasFocus",
                 "filters": {
                     "syntaxes": ["go"]
@@ -50,7 +50,7 @@
             },
             {
                 "title": "Find References",
-                "command": "go.findReferences",
+                "command": "org.ursamaris.nova.go.cmd.findReferences",
                 "when": "editorHasFocus",
                 "filters": {
                     "syntaxes": ["go"]
@@ -58,7 +58,7 @@
             },
             {
                 "title": "Find Implementations",
-                "command": "go.findImplementations",
+                "command": "org.ursamaris.nova.go.cmd.findImplementations",
                 "when": "editorHasFocus",
                 "filters": {
                     "syntaxes": ["go"]
@@ -66,7 +66,7 @@
             },
             {
                 "title": "Find Type Definition",
-                "command": "go.findTypeDefinition",
+                "command": "org.ursamaris.nova.go.cmd.findTypeDefinition",
                 "when": "editorHasFocus",
                 "filters": {
                     "syntaxes": ["go"]
