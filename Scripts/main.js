@@ -1,6 +1,3 @@
-// The minimum supported Nova version
-const minNova = 2;
-
 // Preferences for gopls
 const goplsConfig = require('../gopls.json');
 
@@ -10,8 +7,8 @@ const commands = require('commands.js');
 // Return an array of configuration property names that should be
 // passed to the gopls initialization.
 function goplsSettings() {
-    let m = ['gopls-supported', 'gopls-experimental'].map((section) => {
-        let cs = goplsConfig.find((i) => i.key === section);
+    var m = ['gopls-supported', 'gopls-experimental'].map((section) => {
+        var cs = goplsConfig.find((i) => i.key === section);
         if (cs.children) {
             return cs.children.map((ci) => ci.key);
         }
@@ -20,63 +17,58 @@ function goplsSettings() {
     return m.reduce((acc, cv) => acc.concat(cv));
 }
 
-// console.log doesn't go anywhere during deactivation
-var logFile = null;
-function logger(message) {
-    if (!nova.inDevMode()) {
-        if (!logFile) {
-            logFile = nova.fs.open('/tmp/gonova.log', 'a');
-            logFile.write('\n\n');
-        }
-        logFile.write(`${Date.now()}  ${message}\n`);
-    } else {
-        console.info(message);
-    }
-}
-
-function goEnv(name, cb) {
-    var options = {
-        args: ['go', 'env', name],
+function goEnv(name) {
+    var p = function (resolve, reject) {
+        var options = {
+            args: ['go', 'env', name],
+        };
+        var process = new Process('/usr/bin/env', options);
+        lines = new Array();
+        process.onStdout(function (line) {
+            lines.push(line);
+        });
+        process.onDidExit(function (exitCode) {
+            if (exitCode !== 0) {
+                reject(`${options.args.join(' ')} exited ${exitCode}`);
+            }
+            resolve(lines.join('\n').trim());
+        });
+        process.start();
     };
-    var process = new Process('/usr/bin/env', options);
-    lines = new Array();
-    process.onStdout(function (line) {
-        lines.push(line);
-    });
-    process.onDidExit(function (exitCode) {
-        if (exitCode !== 0) {
-            console.error(`${options.args.join(' ')} exited ${exitCode}`);
-        }
-        cb(lines.join('\n').trim());
-    });
-    process.start();
+    return new Promise(p);
 }
 
 // Return the full path an external tool, or undefined if the
 // path isn't found, or isn't executable.
 function toolPath(tool) {
-        // First, just check the passed in argument.
-        if (nova.fs.access(tool, nova.fs.R_OK, nova.fs.X_OK)) {
-            return tool;
-        }
+    // First, just check the passed in argument.
+    if (nova.fs.access(tool, nova.fs.R_OK, nova.fs.X_OK)) {
+        return tool;
+    }
 
-        // No? Okay, then look in GOPATH, and then PATH
-        let search = [];
-        if (nova.environment['GOPATH']) {
-            search.push([nova.environment['GOPATH'], 'bin'].join('/'));
-        }
-        search = search.concat(nova.environment['PATH'].split(':'));
-        let found = search.find((val) => {
-            return nova.fs.access(
-                [val, tool].join('/'),
-                nova.fs.R_OK,
-                nova.fs.X_OK
-            );
-        });
-        if (found) {
-            return [found, tool].join('/');
-        }
-        return undefined;
+    // No? Okay, then look in GOPATH, and then PATH
+    var search = [];
+    if (nova.environment['GOPATH']) {
+        search.push([nova.environment['GOPATH'], 'bin'].join('/'));
+    }
+    search = search.concat(nova.environment['PATH'].split(':'));
+    var found = search.find((val) => {
+        return nova.fs.access(
+            [val, tool].join('/'),
+            nova.fs.R_OK,
+            nova.fs.X_OK
+        );
+    });
+    if (found) {
+        return [found, tool].join('/');
+    }
+    return undefined;
+}
+
+function plog(prefix) {
+    return (msg) => {
+        console.info(`${prefix}: ${msg}`);
+    };
 }
 
 // Language server instance
@@ -85,19 +77,12 @@ var gls = null;
 exports.activate = function () {
     // Do work when the extension is activated.
     // GoLanguage server is a Disposable, so just register it with nova for the cleanup on deactivation.
-    logger('Activate');
-    if (nova.version[0] < minNova) {
-        nova.workspace.showWarningMessage(
-            `Language Server functionality requires Nova ${minNova}.`
-        );
-        return;
-    }
     gls = new GoLanguageServer();
+    gls.start().then(plog('activate')).catch(plog('activate fail'));
 };
 
 exports.deactivate = function () {
     // Clean up state before the extension is deactivated
-    logger('Deactivate');
     if (gls !== null) {
         gls.dispose();
         gls = null;
@@ -106,8 +91,6 @@ exports.deactivate = function () {
 
 class GoLanguageServer {
     constructor() {
-        logger('GoLanguageServer.constructor()');
-
         // Commands that span the life of the extension should
         // be added here, for reaping at disposal time.
         this.extCommands = new CompositeDisposable();
@@ -125,21 +108,19 @@ class GoLanguageServer {
                 // But on the way there, we get called once with with current === null
                 // and again with current === previous, both of which we need to ignore.
                 if (current && current != previous && this.goplsEnabled()) {
-                    console.info('Restarting gopls due to path change');
-                    this.restart();
+                    this.restart().then(plog('gopls path change'));
                 }
             },
             this
         );
 
-        nova.config.observe(
+        nova.config.onDidChange(
             'go.gopls-enabled',
             function (enabled) {
-                logger(`observing gopls to be ${enabled}`);
                 if (enabled) {
-                    this.start();
+                    this.start().then(plog('enable')).catch(plog('enable fail'));
                 } else {
-                    this.stop();
+                    this.stop().then(plog('disable')).catch(plog('disable fail'));
                 }
             },
             this
@@ -152,136 +133,157 @@ class GoLanguageServer {
     }
 
     dispose() {
-        logger('GoLanguageServer.dispose()');
-        this.stop();
+        this.stop().then(plog('disposed'));
         this.extCommands.dispose();
     }
 
     start() {
-        logger('GoLanguageServer.start()');
-        if (this.languageClient) {
-            logger('gopls is already running');
-            return;
-        }
+        var t = this;
+        var p = function (resolve, reject) {
+            if (t.languageClient) {
+                return resolve('gopls is already running');
+            }
 
-        if (!this.goplsEnabled()) {
-            logger('gopls is not enabled');
-            return;
-        }
+            if (!t.goplsEnabled()) {
+                return reject('gopls is not enabled');
+            }
 
-        if (!nova.workspace.path) {
-            console.error('The Nova workspace has no path!');
-            return;
-        }
+            if (!nova.workspace.path) {
+                return reject('The Nova workspace has no path!');
+            }
 
-        // Things with the lifespan of the LanguageClient go here
-        this.lcCommands = new CompositeDisposable();
+            // Things with the lifespan of the LanguageClient go here
+            t.lcCommands = new CompositeDisposable();
 
-        // Create the client
-        var serverOptions = {
-            path: toolPath(nova.config.get('go.gopls-path', 'string')),
-            args: ['serve'],
-        };
+            // Create the client
+            var serverOptions = {
+                path: toolPath(nova.config.get('go.gopls-path', 'string')),
+                args: ['serve'],
+            };
 
-        if (serverOptions.path === undefined) {
-            nova.workspace.showWarningMessage(
-                `Cannot locate gopls.\n\nMake sure it installed in $GOPATH/bin, somewhere in $PATH, or provide the full path in the ${nova.extension.name} extension config.`
-            );
-            return;
-        }
+            if (serverOptions.path === undefined) {
+                nova.workspace.showWarningMessage(
+                    `Cannot locate gopls.\n\nMake sure it installed in $GOPATH/bin, somewhere in $PATH, or provide the full path in the ${nova.extension.name} extension config.`
+                );
+                return reject('cannot locate gopls');
+            }
 
-        console.log('Using gopls:', serverOptions.path);
-
-        if (nova.inDevMode()) {
-            serverOptions.args = serverOptions.args.concat([
-                '-rpc.trace',
-                '-logfile',
-                '/tmp/gopls.log',
-            ]);
-        }
-
-        var clientOptions = {
-            // The set of document syntaxes for which the server is valid
-            syntaxes: ['go'],
-            initializationOptions: {},
-        };
-        // Set gopls configuration
-        goplsSettings().forEach((opt) => {
-            clientOptions.initializationOptions[opt] = nova.config.get(opt);
-        });
-
-        var client = new LanguageClient(
-            'gopls',
-            'gopls',
-            serverOptions,
-            clientOptions
-        );
-
-        try {
-            // Start the client
-            client.start();
-
-            // Add the client to the subscriptions to be cleaned up
-            this.lcCommands.add(client);
-            this.languageClient = client;
-
-            // Add extension commands dependent on gopls
-            this.lcCommands.add(
-                nova.commands.register('go.organizeImports', (editor) =>
-                    commands.OrganizeImports(editor, client)
-                )
-            );
-            this.lcCommands.add(
-                nova.commands.register('go.formatFile', (editor) =>
-                    commands.FormatFile(editor, client)
-                )
-            );
-            this.lcCommands.add(
-                nova.commands.register('go.findReferences', (editor) =>
-                    commands.FindReferences(editor, client)
-                )
-            );
-            this.lcCommands.add(
-                nova.commands.register('go.findImplementations', (editor) =>
-                    commands.FindImplementations(editor, client)
-                )
-            );
-            this.lcCommands.add(
-                nova.commands.register('go.findTypeDefinition', (editor) =>
-                    commands.FindTypeDefinition(editor, client)
-                )
-            );
-        } catch (err) {
-            // If the .start() method throws, it's likely because the path to the language server is invalid
+            console.log('Using gopls:', serverOptions.path);
 
             if (nova.inDevMode()) {
-                console.error('start error', err);
+                serverOptions.args = serverOptions.args.concat([
+                    '-rpc.trace',
+                    '-logfile',
+                    '/tmp/gopls.log',
+                ]);
             }
-        }
+
+            var clientOptions = {
+                // The set of document syntaxes for which the server is valid
+                syntaxes: ['go'],
+                initializationOptions: {},
+            };
+            // Set gopls configuration
+            goplsSettings().forEach((opt) => {
+                clientOptions.initializationOptions[opt] = nova.config.get(opt);
+            });
+
+            var client = new LanguageClient(
+                'gopls',
+                'gopls',
+                serverOptions,
+                clientOptions
+            );
+
+            try {
+                // Start the client
+                client.start();
+
+                // Add the client to the subscriptions to be cleaned up
+                t.lcCommands.add(client);
+                t.languageClient = client;
+
+                // Add extension commands dependent on gopls
+                t.lcCommands.add(
+                    nova.commands.register('go.organizeImports', (editor) =>
+                        commands.OrganizeImports(editor, client)
+                    )
+                );
+                t.lcCommands.add(
+                    nova.commands.register('go.formatFile', (editor) =>
+                        commands.FormatFile(editor, client)
+                    )
+                );
+                t.lcCommands.add(
+                    nova.commands.register('go.findReferences', (editor) =>
+                        commands.FindReferences(editor, client)
+                    )
+                );
+                t.lcCommands.add(
+                    nova.commands.register('go.findImplementations', (editor) =>
+                        commands.FindImplementations(editor, client)
+                    )
+                );
+                t.lcCommands.add(
+                    nova.commands.register('go.findTypeDefinition', (editor) =>
+                        commands.FindTypeDefinition(editor, client)
+                    )
+                );
+            } catch (err) {
+                return reject(err);
+            }
+
+            // Look for the language server to be running.
+            var tries = 10;
+            var i = setInterval(() => {
+                if (t && t.languageClient && t.languageClient.running) {
+                    clearInterval(i);
+                    resolve('gopls is running');
+                }
+                if (tries < 1) {
+                    reject('gopls failed to start');
+                }
+                tries = tries - 1;
+            }, 50);
+        };
+        return new Promise(p);
     }
 
     stop() {
-        logger('GoLanguageServer.stop()');
-        if (this.languageClient) {
-            this.languageClient.stop();
-            this.lcCommands.remove(this.LanguageClient);
-            this.lcCommands.dispose();
-            this.languageClient = null;
-            this.lcCommands = null;
-        }
+        var t = this;
+        var p = function (resolve) {
+            if (t.languageClient) {
+                t.languageClient.onDidStop((err) => {
+                    if (err) {
+                        // As of Nova 2.0, gopls does not cleanly shut down
+                        // because Nova sends an empty parameters object to
+                        // the lsp shutdown command rather than null, as per
+                        // the lsp spec.
+                        console.log(`ignoring gopls exit: ${err}`);
+                    }
+                    resolve('gopls stopped');
+                });
+                t.languageClient.stop();
+                t.lcCommands.remove(t.languageClient);
+                t.lcCommands.dispose();
+                t.languageClient = null;
+                t.lcCommands = null;
+            } else {
+                resolve('gopls is not running');
+            }
+        };
+        return new Promise(p);
     }
 
     restart() {
-        logger('GoLanguageServer.restart()');
-        if (this.LanguageClient === null || this.languageClient === undefined) {
-            this.start();
-            return;
-        }
-        this.languageClient.onDidStop((err) => {
-            console.log(`gopls exit ${err}`);
-            this.start();
-        }, this);
-        this.stop();
+        var t = this;
+        return t
+            .stop()
+            .then(() => {
+                return t.start();
+            })
+            .then(plog('restart'))
+            .catch(plog('restart fail'));
     }
 
     client() {
