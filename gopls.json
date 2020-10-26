@@ -24,12 +24,14 @@
         "children": [
             {
                 "key": "org.ursamaris.nova.go.gopls.usePlaceholders",
+                "title": "Use Placeholders",
                 "description": "Enables placeholders for function parameters or struct fields in completion responses.",
                 "type": "boolean",
                 "default": false
             },
             {
                 "key": "org.ursamaris.nova.go.gopls.hoverKind",
+                "title": "Hover Kind",
                 "description": "Controls the information that appears in the hover text. SingleLine and Structured are intended for use only by authors of editor plugins.",
                 "type": "enum",
                 "values": [
@@ -43,6 +45,7 @@
             },
             {
                 "key": "org.ursamaris.nova.go.gopls.linkTarget",
+                "title": "Link Target",
                 "description": "Controls where documentation links go.",
                 "type": "enum",
                 "values": ["godoc.org", "pkg.go.dev"],
@@ -51,12 +54,14 @@
             },
             {
                 "key": "org.ursamaris.nova.go.gopls.local",
+                "title": "Local Imports",
                 "description": "The equivalent of the goimports -local flag, which puts imports beginning with this string after 3rd-party packages. It should be the prefix of the import path whose imports should be grouped separately.",
                 "type": "string",
                 "default": ""
             },
             {
                 "key": "org.ursamaris.nova.go.gopls.gofumpt",
+                "title": "gofumpt",
                 "description": "Use gofumpt for formatting",
                 "type": "boolean",
                 "default": false
@@ -71,24 +76,28 @@
         "children": [
             {
                 "key": "org.ursamaris.nova.go.gopls.completionDocumentation",
+                "title": "Completion Documentation",
                 "description": "Enable documentation with completion results",
                 "type": "boolean",
                 "default": true
             },
             {
                 "key": "org.ursamaris.nova.go.gopls.completeUnimported",
+                "title": "Complete Unimported",
                 "description": "Enable completion for packages that you do not currently imported",
                 "type": "boolean",
                 "default": true
             },
             {
                 "key": "org.ursamaris.nova.go.gopls.deepCompletion",
+                "title": "Deep Completion",
                 "description": "Enable the ability to return completions from deep inside relevant entities, rather than just the locally accessible ones.",
                 "type": "boolean",
                 "default": true
             },
             {
                 "key": "org.ursamaris.nova.go.gopls.matcher",
+                "title": "Completion Matching",
                 "description": "Sets the algorithm that is used when calculating completion candidates.",
                 "type": "enum",
                 "values": ["CaseInsensitive", "CaseSensitive", "Fuzzy"],
@@ -96,6 +105,7 @@
             },
             {
                 "key": "org.ursamaris.nova.go.gopls.symbolMatcher",
+                "title": "Symbol Matching",
                 "description": "Sets the algorithm that is used when finding workspace symbols.",
                 "type": "enum",
                 "values": ["CaseInsensitive", "CaseSensitive", "Fuzzy"],
@@ -103,6 +113,7 @@
             },
             {
                 "key": "org.ursamaris.nova.go.gopls.symbolStyle",
+                "title": "Symbol Style",
                 "description": "Controls how symbols are qualified in symbol responses.",
                 "type": "enum",
                 "values": ["Dynamic", "Full", "Package"],
@@ -110,12 +121,14 @@
             },
             {
                 "key": "org.ursamaris.nova.go.gopls.linksInHover",
+                "title": "Hover Links",
                 "description": "Toggles the presence of links to documentation in hover.",
                 "type": "boolean",
                 "default": true
             },
             {
                 "key": "org.ursamaris.nova.go.gopls.importShortcut",
+                "title": "Import Shortcut",
                 "description": "Specifies whether import statements should link to documentation or go to definitions.",
                 "type": "enum",
                 "values": ["Both", "Definition", "Link"],
