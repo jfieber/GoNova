@@ -65,8 +65,24 @@
                 }
             },
             {
+                "title": "Find Definition",
+                "command": "org.ursamaris.nova.go.cmd.findDefinition",
+                "when": "editorHasFocus",
+                "filters": {
+                    "syntaxes": ["go"]
+                }
+            },
+            {
                 "title": "Find Type Definition",
                 "command": "org.ursamaris.nova.go.cmd.findTypeDefinition",
+                "when": "editorHasFocus",
+                "filters": {
+                    "syntaxes": ["go"]
+                }
+            },
+            {
+                "title": "Jump Back",
+                "command": "org.ursamaris.nova.go.cmd.jumpBack",
                 "when": "editorHasFocus",
                 "filters": {
                     "syntaxes": ["go"]

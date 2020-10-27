@@ -1,5 +1,40 @@
 const lsp = require('lsp.js');
 
+class JumpStack {
+    constructor() {
+        this.jumpStack = [];
+    }
+    
+    push() {
+        this.jumpStack.push({
+            uri: nova.workspace.activeTextEditor.document.uri,
+            range: nova.workspace.activeTextEditor.selectedRange
+        });
+    }
+    
+    pop() {
+        let p = this.jumpStack.pop();
+        if (p) {
+            nova.workspace.openFile(p.uri)
+            .then((targetEditor) => {
+                targetEditor.selectedRange = p.range;
+                targetEditor.scrollToCursorPosition();
+            })
+            .catch((err) => {
+                console.error(`Failed to pop ${err}`);
+            });
+        } else {
+            console.log('jump stack is empty');
+        }
+    }
+}
+
+var js = new JumpStack();
+
+exports.JumpBack = () => {
+    js.pop();
+}
+
 exports.OrganizeImports = (editor, lclient) => {
     if (lclient) {
         var cmd = 'textDocument/codeAction';
@@ -67,6 +102,10 @@ exports.FindImplementations = (editor, lclient) => {
     findX(editor, lclient, 'textDocument/implementation');
 };
 
+exports.FindDefinition = (editor, lclient) => {
+    findX(editor, lclient, 'textDocument/definition');
+};
+
 exports.FindTypeDefinition = (editor, lclient) => {
     findX(editor, lclient, 'textDocument/typeDefinition');
 };
@@ -104,11 +143,14 @@ function findX(editor, lclient, command, params) {
     }
 }
 
+
 // Jump to an LSP Location
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#location
 function jumpTo(lspLocation) {
     if (lspLocation === undefined || lspLocation === null) {
+        console.error('jumpTo(): no jump target specified!');
     }
+    js.push();
     nova.workspace
         .openFile(lspLocation.uri)
         .then((targetEditor) => {
@@ -161,7 +203,7 @@ function multiJump(lspLocations) {
     // Otherwise fix up the UI label for the choice palette
     let labeled = lspLocations.map((target) => {
         target.title =
-            target.uri.replace(`file://${nova.workspace.path}/`, '') +
+            nova.workspace.relativizePath(target.uri.replace(`file://`, '')) +
             ` ${target.range.start.line + 1}:${
                 target.range.start.character + 1
             }`;

@@ -233,8 +233,20 @@ class GoLanguageServer {
                 );
                 this.lcCommands.add(
                     nova.commands.register(
+                        exItem('cmd.findDefinition'),
+                        (editor) => commands.FindDefinition(editor, client)
+                    )
+                );
+                this.lcCommands.add(
+                    nova.commands.register(
                         exItem('cmd.findTypeDefinition'),
                         (editor) => commands.FindTypeDefinition(editor, client)
+                    )
+                );
+                this.lcCommands.add(
+                    nova.commands.register(
+                        exItem('cmd.jumpBack'),
+                        (editor) => commands.JumpBack(editor, client)
                     )
                 );
             } catch (err) {
