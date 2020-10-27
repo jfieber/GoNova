@@ -54,18 +54,18 @@ function toolPath(tool) {
     // No? Okay, then look in GOPATH, and then PATH
     var search = [];
     if (nova.environment['GOPATH']) {
-        search.push([nova.environment['GOPATH'], 'bin'].join('/'));
+        search.push(nova.path.join(nova.environment['GOPATH'], 'bin'));
     }
     search = search.concat(nova.environment['PATH'].split(':'));
     var found = search.find((val) => {
         return nova.fs.access(
-            [val, tool].join('/'),
+            nova.path.join(val, tool),
             nova.fs.R_OK,
             nova.fs.X_OK
         );
     });
     if (found) {
-        return [found, tool].join('/');
+        return nova.path.join(found, tool);
     }
     return undefined;
 }
@@ -174,9 +174,10 @@ class GoLanguageServer {
                 serverOptions.args = serverOptions.args.concat([
                     '-rpc.trace',
                     '-logfile',
-                    '/tmp/gopls.log',
+                    `/tmp/gopls-${nova.path.basename(nova.workspace.path)}.log`,
                 ]);
             }
+            console.log(JSON.stringify(serverOptions));
 
             var clientOptions = {
                 // The set of document syntaxes for which the server is valid
