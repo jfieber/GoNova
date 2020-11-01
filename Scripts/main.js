@@ -169,6 +169,12 @@ class GoLanguageServer {
                 this.stop().then(plog('disable')).catch(plog('disable fail'));
             }
         });
+
+        nova.config.onDidChange(exItem('gopls-trace'), (current, previous) => {
+            this.restart()
+                .then(plog(`gopls-trace set to ${current}`))
+                .catch(plog(`gopls restart fail`));
+        });
     }
 
     dispose() {
@@ -208,12 +214,9 @@ class GoLanguageServer {
 
             console.log('Using gopls:', serverOptions.path);
 
-            if (nova.inDevMode()) {
-                serverOptions.args = serverOptions.args.concat([
-                    '-rpc.trace',
-                    '-logfile',
-                    `/tmp/gopls-${nova.path.basename(nova.workspace.path)}.log`,
-                ]);
+            if (nova.config.get(exItem('gopls-trace'), 'boolean')) {
+                console.log('gopls rpc tracing is enabled');
+                serverOptions.args = serverOptions.args.concat(['-rpc.trace']);
             }
             console.log(JSON.stringify(serverOptions));
 
