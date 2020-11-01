@@ -1,12 +1,32 @@
-// Preferences for gopls
-const goplsConfig = require('../gopls.json');
-
 // Extension commands
 const commands = require('commands.js');
 
 // Append an extension config/command name to the extension prefix
 function exItem(name) {
     return [nova.extension.identifier, name].join('.');
+}
+
+// Preferences for gopls
+const goplsConfPath = require('../gopls.json');
+const goplsConfPrefix = 'gopls.';
+
+// Return an array of configuration property names that should be
+// passed to the gopls initialization.
+function goplsSettings() {
+    let conf = {};
+    ['gopls-supported', 'gopls-experimental'].forEach((section) => {
+        var cs = goplsConfPath.find((i) => i.key === section);
+        if (Array.isArray(cs.children)) {
+            return cs.children.forEach((ci) => {
+                if (ci.key.indexOf(goplsConfPrefix) === 0) {
+                    conf[ci.key.replace(goplsConfPrefix, '')] = nova.config.get(
+                        ci.key
+                    );
+                }
+            });
+        }
+    });
+    return conf;
 }
 
 function goEnv(name) {
@@ -164,7 +184,7 @@ class GoLanguageServer {
             var clientOptions = {
                 // The set of document syntaxes for which the server is valid
                 syntaxes: ['go'],
-                initializationOptions: {},
+                initializationOptions: goplsSettings(),
             };
 
             var client = new LanguageClient(
