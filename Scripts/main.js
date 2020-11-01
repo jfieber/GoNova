@@ -50,6 +50,35 @@ function goEnv(name) {
     return new Promise(p);
 }
 
+// Obtain the gopls version.
+function goplsVersion() {
+    return new Promise((resolve, reject) => {
+        let gpath = toolPath(nova.config.get(exItem('gopls-path'), 'string'));
+        if (gpath === undefined) {
+            return reject('could not find gopls');
+        }
+        let goplsvers = new Process(gpath, { args: ['version'] });
+        let foundVersion = null;
+        goplsvers.onStdout((line) => {
+            if (foundVersion === null) {
+                foundVersion = line.match(/v\d+\.\d+.\d+/);
+            }
+        });
+        goplsvers.onDidExit((exitCode) => {
+            if (exitCode !== 0) {
+                reject(`gopls return exit code ${exitCode}`);
+            } else {
+                if (foundVersion == null) {
+                    reject('unable to determine gopls version');
+                } else {
+                    resolve(foundVersion);
+                }
+            }
+        });
+        goplsvers.start();
+    });
+}
+
 // Return the full path an external tool, or undefined if the
 // path isn't found, or isn't executable.
 function toolPath(tool) {
@@ -89,8 +118,15 @@ var gls = null;
 exports.activate = () => {
     // Do work when the extension is activated.
     // GoLanguage server is a Disposable, so just register it with nova for the cleanup on deactivation.
-    gls = new GoLanguageServer();
-    gls.start().then(plog('activate')).catch(plog('activate fail'));
+    goplsVersion()
+        .then((v) => {
+            console.log(`Found gopls version ${v}`);
+            gls = new GoLanguageServer();
+            gls.start().then(plog('activate')).catch(plog('activate fail'));
+        })
+        .catch((r) => {
+            console.error(`Fail ${r}`);
+        });
 };
 
 exports.deactivate = () => {
