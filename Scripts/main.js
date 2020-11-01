@@ -9,19 +9,6 @@ function exItem(name) {
     return [nova.extension.identifier, name].join('.');
 }
 
-// Return an array of configuration property names that should be
-// passed to the gopls initialization.
-function goplsSettings() {
-    var m = ['gopls-supported', 'gopls-experimental'].map((section) => {
-        var cs = goplsConfig.find((i) => i.key === section);
-        if (cs.children) {
-            return cs.children.map((ci) => ci.key);
-        }
-        return [];
-    });
-    return m.reduce((acc, cv) => acc.concat(cv));
-}
-
 function goEnv(name) {
     var p = (resolve, reject) => {
         var options = {
@@ -126,11 +113,6 @@ class GoLanguageServer {
                 this.stop().then(plog('disable')).catch(plog('disable fail'));
             }
         });
-
-        // Restart on gopls configuration changes
-        goplsSettings().forEach((opt) => {
-            nova.config.onDidChange(opt, this.restart, this);
-        });
     }
 
     dispose() {
@@ -184,13 +166,6 @@ class GoLanguageServer {
                 syntaxes: ['go'],
                 initializationOptions: {},
             };
-            // Set gopls configuration
-            goplsSettings().forEach((opt) => {
-                let initItem = opt.replace(exItem('gopls.'), '');
-                clientOptions.initializationOptions[initItem] = nova.config.get(
-                    opt
-                );
-            });
 
             var client = new LanguageClient(
                 'gopls',
@@ -244,9 +219,8 @@ class GoLanguageServer {
                     )
                 );
                 this.lcCommands.add(
-                    nova.commands.register(
-                        exItem('cmd.jumpBack'),
-                        (editor) => commands.JumpBack(editor, client)
+                    nova.commands.register(exItem('cmd.jumpBack'), (editor) =>
+                        commands.JumpBack(editor, client)
                     )
                 );
             } catch (err) {
