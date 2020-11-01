@@ -154,32 +154,11 @@ function jumpTo(lspLocation) {
     nova.workspace
         .openFile(lspLocation.uri)
         .then((targetEditor) => {
-            // When Nova first opens a file, the callback gets an undefined editor,
-            // which is most likely a bug. Usually works the second time.
-            if (targetEditor === undefined) {
-                console.error('Failed to get TextEditor, will retry');
-                nova.workspace
-                    .openFile(lspLocation.uri)
-                    .then((targetEditor) => {
-                        targetEditor.selectedRange = lsp.LspRangeToRange(
-                            targetEditor.document,
-                            lspLocation.range
-                        );
-                        targetEditor.scrollToCursorPosition();
-                    })
-                    .catch((err) => {
-                        console.error(
-                            'Failed to get text editor on the second try',
-                            err
-                        );
-                    });
-            } else {
-                targetEditor.selectedRange = lsp.LspRangeToRange(
-                    targetEditor.document,
-                    lspLocation.range
-                );
-                targetEditor.scrollToCursorPosition();
-            }
+            targetEditor.selectedRange = lsp.LspRangeToRange(
+                targetEditor.document,
+                lspLocation.range
+            );
+            targetEditor.scrollToCursorPosition();
         })
         .catch((err) => {
             console.info('Failed in the jump', err);
