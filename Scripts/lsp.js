@@ -68,12 +68,10 @@ exports.ApplyTextDocumentEdit = (tde) => {
 exports.ApplyTextEdits = (editor, edits) => {
     editor
         .edit((tee) => {
-            var shift = 0;
-            edits.forEach((e) => {
+            edits.reverse().forEach((e) => {
                 var r0 = exports.LspRangeToRange(editor.document, e.range);
-                var r1 = new Range(r0.start + shift, r0.end + shift);
+                var r1 = new Range(r0.start, r0.end);
                 tee.replace(r1, e.newText);
-                shift = shift + (e.newText.length - r1.length);
             });
         })
         .then(() => {
