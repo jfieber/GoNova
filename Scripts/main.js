@@ -1,109 +1,12 @@
 // Extension commands
 const commands = require('commands.js');
 
+// gopls utilities
+const gopls = require('gopls.js');
+
 // Append an extension config/command name to the extension prefix
 function exItem(name) {
     return [nova.extension.identifier, name].join('.');
-}
-
-// Preferences for gopls
-const goplsConfPath = require('../gopls.json');
-const goplsConfPrefix = 'gopls.';
-
-// Return an array of configuration property names that should be
-// passed to the gopls initialization.
-function goplsSettings() {
-    let conf = {};
-    ['gopls-supported', 'gopls-experimental'].forEach((section) => {
-        var cs = goplsConfPath.find((i) => i.key === section);
-        if (Array.isArray(cs.children)) {
-            return cs.children.forEach((ci) => {
-                if (ci.key.indexOf(goplsConfPrefix) === 0) {
-                    conf[ci.key.replace(goplsConfPrefix, '')] = nova.config.get(
-                        ci.key
-                    );
-                }
-            });
-        }
-    });
-    return conf;
-}
-
-function goEnv(name) {
-    var p = (resolve, reject) => {
-        var options = {
-            args: ['go', 'env', name],
-        };
-        var process = new Process('/usr/bin/env', options);
-        lines = new Array();
-        process.onStdout((line) => {
-            lines.push(line);
-        });
-        process.onDidExit((exitCode) => {
-            if (exitCode !== 0) {
-                reject(`${options.args.join(' ')} exited ${exitCode}`);
-            }
-            resolve(lines.join('\n').trim());
-        });
-        process.start();
-    };
-    return new Promise(p);
-}
-
-// Obtain the gopls version.
-function goplsVersion() {
-    return new Promise((resolve, reject) => {
-        let gpath = toolPath(nova.config.get(exItem('gopls-path'), 'string'));
-        if (gpath === undefined) {
-            return reject('could not find gopls');
-        }
-        let goplsvers = new Process(gpath, { args: ['version'] });
-        let foundVersion = null;
-        goplsvers.onStdout((line) => {
-            if (foundVersion === null) {
-                foundVersion = line.match(/v\d+\.\d+.\d+/);
-            }
-        });
-        goplsvers.onDidExit((exitCode) => {
-            if (exitCode !== 0) {
-                reject(`gopls return exit code ${exitCode}`);
-            } else {
-                if (foundVersion == null) {
-                    reject('unable to determine gopls version');
-                } else {
-                    resolve(foundVersion);
-                }
-            }
-        });
-        goplsvers.start();
-    });
-}
-
-// Return the full path an external tool, or undefined if the
-// path isn't found, or isn't executable.
-function toolPath(tool) {
-    // First, just check the passed in argument.
-    if (nova.fs.access(tool, nova.fs.R_OK, nova.fs.X_OK)) {
-        return tool;
-    }
-
-    // No? Okay, then look in GOPATH, and then PATH
-    var search = [];
-    if (nova.environment['GOPATH']) {
-        search.push(nova.path.join(nova.environment['GOPATH'], 'bin'));
-    }
-    search = search.concat(nova.environment['PATH'].split(':'));
-    var found = search.find((val) => {
-        return nova.fs.access(
-            nova.path.join(val, tool),
-            nova.fs.R_OK,
-            nova.fs.X_OK
-        );
-    });
-    if (found) {
-        return nova.path.join(found, tool);
-    }
-    return undefined;
 }
 
 function plog(prefix) {
@@ -117,16 +20,8 @@ var gls = null;
 
 exports.activate = () => {
     // Do work when the extension is activated.
-    // GoLanguage server is a Disposable, so just register it with nova for the cleanup on deactivation.
-    goplsVersion()
-        .then((v) => {
-            console.log(`Found gopls version ${v}`);
-            gls = new GoLanguageServer();
-            gls.start().then(plog('activate')).catch(plog('activate fail'));
-        })
-        .catch((r) => {
-            console.error(`Fail ${r}`);
-        });
+    gls = new GoLanguageServer();
+    gls.start().then(plog('activate')).catch(plog('activate warning'));
 };
 
 exports.deactivate = () => {
@@ -151,14 +46,69 @@ class GoLanguageServer {
             )
         );
 
+        this.extCommands.add(
+            nova.commands.register(
+                exItem('cmd.installGopls'),
+                (w) => {
+                    w.showInputPanel(
+                        'Specify gopls version to install',
+                        {
+                            label: 'Version',
+                            placeholder: 'latest',
+                            value: 'latest',
+                        },
+                        (iversion) => {
+                            if (iversion) {
+                                gopls
+                                    .Install(iversion)
+                                    .then((v) => {
+                                        let imsg = `Installed gopls ${v.version} at ${v.path}`;
+                                        if (!gopls.Enabled()) {
+                                            let emsg = `The language server is not enabled. Enable it now?`;
+                                            w.showActionPanel(
+                                                [imsg, emsg].join('\n\n'),
+                                                {
+                                                    buttons: [
+                                                        'Enable',
+                                                        'Cancel',
+                                                    ],
+                                                },
+                                                (i) => {
+                                                    if (i === 0) {
+                                                        gopls.Enable();
+                                                    }
+                                                }
+                                            );
+                                        } else {
+                                            w.showInformativeMessage(imsg);
+                                            if (gopls.Enabled()) {
+                                                this.restart();
+                                            }
+                                        }
+                                    })
+                                    .catch((v) => {
+                                        w.showInformativeMessage(
+                                            `Error installing gopls:\n\n${v}`
+                                        );
+                                    });
+                            }
+                        }
+                    );
+                },
+                this
+            )
+        );
+
         // Observe the configuration setting for the server's location, and restart the server on change
         nova.config.onDidChange(exItem('gopls-path'), (current, previous) => {
             // If the user deletes the value in the preferences and presses
             // return or tab, it will revert to the default of 'gopls'.
             // But on the way there, we get called once with with current === null
             // and again with current === previous, both of which we need to ignore.
-            if (current && current != previous && this.goplsEnabled()) {
-                this.restart().then(plog('gopls path change'));
+            if (current && current != previous && gopls.Enabled()) {
+                this.restart()
+                    .then(plog('gopls path change'))
+                    .catch(plog('gopls restart failed after path change'));
             }
         });
 
@@ -170,16 +120,16 @@ class GoLanguageServer {
             }
         });
 
-        nova.config.onDidChange(exItem('gopls-trace'), (current, previous) => {
+        nova.config.onDidChange(exItem('gopls-trace'), (current) => {
             this.restart()
                 .then(plog(`gopls-trace set to ${current}`))
-                .catch(plog(`gopls restart fail`));
+                .catch(plog(`gopls-trace restart fail`));
         });
     }
 
     dispose() {
         this.stop().then(plog('dispose')).catch('dispose fail');
-        // this.extCommands.dispose();
+        this.extCommands.dispose();
     }
 
     start() {
@@ -188,7 +138,7 @@ class GoLanguageServer {
                 return resolve('gopls is already running');
             }
 
-            if (!this.goplsEnabled()) {
+            if (!gopls.Enabled()) {
                 return reject('gopls is not enabled');
             }
 
@@ -201,7 +151,9 @@ class GoLanguageServer {
 
             // Create the client
             var serverOptions = {
-                path: toolPath(nova.config.get(exItem('gopls-path'), 'string')),
+                path: gopls.ToolPath(
+                    nova.config.get(exItem('gopls-path'), 'string')
+                ),
                 args: ['serve'],
             };
 
@@ -211,20 +163,18 @@ class GoLanguageServer {
                 );
                 return reject('cannot locate gopls');
             }
-
-            console.log('Using gopls:', serverOptions.path);
-
             if (nova.config.get(exItem('gopls-trace'), 'boolean')) {
                 console.log('gopls rpc tracing is enabled');
                 serverOptions.args = serverOptions.args.concat(['-rpc.trace']);
             }
-            console.log(JSON.stringify(serverOptions));
+            console.log('server options:', JSON.stringify(serverOptions));
 
             var clientOptions = {
                 // The set of document syntaxes for which the server is valid
                 syntaxes: ['go'],
-                initializationOptions: goplsSettings(),
+                initializationOptions: gopls.Settings(),
             };
+            console.log('client options:', JSON.stringify(clientOptions));
 
             var client = new LanguageClient(
                 'gopls',
@@ -340,9 +290,5 @@ class GoLanguageServer {
 
     client() {
         return this.languageClient;
-    }
-
-    goplsEnabled() {
-        return nova.config.get(exItem('gopls-enabled'), 'boolean');
     }
 }

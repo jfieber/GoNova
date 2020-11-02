@@ -5,7 +5,7 @@
         "description": "Use the gopls language server for enhanced functionality. The gopls command should be installed in your search path, or you can specify the full path below.",
         "link": "https://github.com/golang/tools/blob/master/gopls/README.md",
         "type": "boolean",
-        "default": true
+        "default": false
     },
     {
         "key": "org.ursamaris.nova.go.gopls-path",
