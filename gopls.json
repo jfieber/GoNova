@@ -127,12 +127,68 @@
                 "default": true
             },
             {
+                "key": "gopls.tempModfile",
+                "title": "Temporary mod File",
+                "description": "Controls the use of the -modfile flag in Go 1.14.",
+                "type": "boolean",
+                "default": true
+            },
+            {
                 "key": "gopls.importShortcut",
                 "title": "Import Shortcut",
                 "description": "Specifies whether import statements should link to documentation or go to definitions.",
                 "type": "enum",
                 "values": ["Both", "Definition", "Link"],
                 "default": "Both"
+            },
+            {
+                "key": "gopls.verboseWorkDoneProgress",
+                "title": "Verbose Work Done Progress",
+                "description": "Controls whether the LSP server should send progress reports for all work done outside the scope of an RPC.",
+                "type": "boolean",
+                "default": false
+            },
+            {
+                "key": "gopls.semanticTokens",
+                "title": "Semantic Tokens",
+                "description": "Controls whether the LSP server will send semantic tokens to the client.",
+                "type": "boolean",
+                "default": false
+            },
+            {
+                "key": "gopls.expandWorkspaceToModule",
+                "title": "Expand Workspace to Module",
+                "description": "instructs gopls to expand the scope of the workspace to include the modules containing the workspace folders. Set this to false to avoid loading your entire module. This is particularly useful for those working in a monorepo.",
+                "type": "boolean",
+                "default": true
+            },
+            {
+                "key": "gopls.experimentalWorkspaceModule",
+                "title": "Multi-module Workspaces",
+                "description": "Opts a user into the experimental support for multi-module workspaces.",
+                "type": "boolean",
+                "default": false
+            },
+            {
+                "key": "gopls.experimentalDiagnosticsDelay",
+                "title": "Diagnostic Delay",
+                "description": "Controls the amount of time that gopls waits after the most recent file modification before computing deep diagnostics. Simple diagnostics (parsing and type-checking) are always run immediately on recently modified packages.\n\nThis option must be set to a valid duration string, for example \"250ms\".",
+                "type": "string",
+                "default": "0s"
+            },
+            {
+                "key": "gopls.experimentalPackageCacheKey",
+                "title": "Package Cache Key",
+                "description": "Controls whether to use a coarser cache key for package type information to increase cache hits. This setting removes the user's environment, build flags, and working directory from the cache key, which should be a safe change as all relevant inputs into the type checking pass are already hashed into the key. This is temporarily guarded by an experiment because caching behavior is subtle and difficult to comprehensively test.",
+                "type": "boolean",
+                "default": false
+            },
+            {
+                "key": "gopls.verboseOutput",
+                "title": "Verbose Output",
+                "description": "Enables additional debug logging.",
+                "type": "boolean",
+                "default": false
             }
         ]
     },
