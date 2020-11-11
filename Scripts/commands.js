@@ -1,28 +1,30 @@
 const lsp = require('lsp.js');
+const gopls = require('gopls.js');
 
 class JumpStack {
     constructor() {
         this.jumpStack = [];
     }
-    
+
     push() {
         this.jumpStack.push({
             uri: nova.workspace.activeTextEditor.document.uri,
-            range: nova.workspace.activeTextEditor.selectedRange
+            range: nova.workspace.activeTextEditor.selectedRange,
         });
     }
-    
+
     pop() {
         let p = this.jumpStack.pop();
         if (p) {
-            nova.workspace.openFile(p.uri)
-            .then((targetEditor) => {
-                targetEditor.selectedRange = p.range;
-                targetEditor.scrollToCursorPosition();
-            })
-            .catch((err) => {
-                console.error(`Failed to pop ${err}`);
-            });
+            nova.workspace
+                .openFile(p.uri)
+                .then((targetEditor) => {
+                    targetEditor.selectedRange = p.range;
+                    targetEditor.scrollToCursorPosition();
+                })
+                .catch((err) => {
+                    console.error(`Failed to pop ${err}`);
+                });
         } else {
             console.log('jump stack is empty');
         }
@@ -33,7 +35,51 @@ var js = new JumpStack();
 
 exports.JumpBack = () => {
     js.pop();
-}
+};
+
+exports.InstallGopls = (workspace) => {
+    workspace.showInputPanel(
+        'Specify gopls version to install',
+        {
+            label: 'Version',
+            placeholder: 'latest',
+            value: 'latest',
+        },
+        (iversion) => {
+            if (iversion) {
+                gopls
+                    .Install(iversion)
+                    .then((v) => {
+                        let imsg = `Installed gopls ${v.version} at ${v.path}`;
+                        if (!gopls.Enabled()) {
+                            let emsg = `The language server is not enabled. Enable it now?`;
+                            workspace.showActionPanel(
+                                [imsg, emsg].join('\n\n'),
+                                {
+                                    buttons: ['Enable', 'Cancel'],
+                                },
+                                (i) => {
+                                    if (i === 0) {
+                                        gopls.Enable();
+                                    }
+                                }
+                            );
+                        } else {
+                            workspace.showInformativeMessage(imsg);
+                            if (gopls.Enabled()) {
+                                this.restart();
+                            }
+                        }
+                    })
+                    .catch((v) => {
+                        workspace.showInformativeMessage(
+                            `Error installing gopls:\n\n${v}`
+                        );
+                    });
+            }
+        }
+    );
+};
 
 exports.OrganizeImports = (editor, lclient) => {
     if (lclient) {
@@ -142,7 +188,6 @@ function findX(editor, lclient, command, params) {
             });
     }
 }
-
 
 // Jump to an LSP Location
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#location

@@ -49,53 +49,7 @@ class GoLanguageServer {
         this.extCommands.add(
             nova.commands.register(
                 exItem('cmd.installGopls'),
-                (w) => {
-                    w.showInputPanel(
-                        'Specify gopls version to install',
-                        {
-                            label: 'Version',
-                            placeholder: 'latest',
-                            value: 'latest',
-                        },
-                        (iversion) => {
-                            if (iversion) {
-                                gopls
-                                    .Install(iversion)
-                                    .then((v) => {
-                                        let imsg = `Installed gopls ${v.version} at ${v.path}`;
-                                        if (!gopls.Enabled()) {
-                                            let emsg = `The language server is not enabled. Enable it now?`;
-                                            w.showActionPanel(
-                                                [imsg, emsg].join('\n\n'),
-                                                {
-                                                    buttons: [
-                                                        'Enable',
-                                                        'Cancel',
-                                                    ],
-                                                },
-                                                (i) => {
-                                                    if (i === 0) {
-                                                        gopls.Enable();
-                                                    }
-                                                }
-                                            );
-                                        } else {
-                                            w.showInformativeMessage(imsg);
-                                            if (gopls.Enabled()) {
-                                                this.restart();
-                                            }
-                                        }
-                                    })
-                                    .catch((v) => {
-                                        w.showInformativeMessage(
-                                            `Error installing gopls:\n\n${v}`
-                                        );
-                                    });
-                            }
-                        }
-                    );
-                },
-                this
+                commands.InstallGopls
             )
         );
 
@@ -129,7 +83,7 @@ class GoLanguageServer {
 
     dispose() {
         this.stop().then(plog('dispose')).catch('dispose fail');
-        this.extCommands.dispose();
+        // this.extCommands.dispose();
     }
 
     start() {
