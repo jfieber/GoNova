@@ -37,7 +37,7 @@ exports.JumpBack = () => {
     js.pop();
 };
 
-exports.InstallGopls = (workspace) => {
+exports.InstallGopls = (workspace, gls) => {
     workspace.showInputPanel(
         'Specify gopls version to install',
         {
@@ -67,7 +67,7 @@ exports.InstallGopls = (workspace) => {
                         } else {
                             workspace.showInformativeMessage(imsg);
                             if (gopls.Enabled()) {
-                                this.restart();
+                                gls.restart();
                             }
                         }
                     })

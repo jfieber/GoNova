@@ -34,24 +34,12 @@ exports.deactivate = () => {
 
 class GoLanguageServer {
     constructor() {
-        // Commands that span the life of the extension should
-        // be added here, for reaping at disposal time.
-        this.extCommands = new CompositeDisposable();
-
-        this.extCommands.add(
-            nova.commands.register(
-                exItem('cmd.restartGopls'),
-                this.restart,
-                this
-            )
+        nova.commands.register(
+            exItem('cmd.installGopls'),
+            (workspace) => commands.InstallGopls(workspace, this),
+            this
         );
-
-        this.extCommands.add(
-            nova.commands.register(
-                exItem('cmd.installGopls'),
-                commands.InstallGopls
-            )
-        );
+        nova.commands.register(exItem('cmd.restartGopls'), this.restart, this);
 
         // Observe the configuration setting for the server's location, and restart the server on change
         nova.config.onDidChange(exItem('gopls-path'), (current, previous) => {
@@ -83,7 +71,6 @@ class GoLanguageServer {
 
     dispose() {
         this.stop().then(plog('dispose')).catch('dispose fail');
-        // this.extCommands.dispose();
     }
 
     start() {
@@ -91,17 +78,12 @@ class GoLanguageServer {
             if (this.languageClient) {
                 return resolve('gopls is already running');
             }
-
             if (!gopls.Enabled()) {
                 return reject('gopls is not enabled');
             }
-
             if (!nova.workspace.path) {
                 return reject('The Nova workspace has no path!');
             }
-
-            // Things with the lifespan of the LanguageClient go here
-            this.lcCommands = new CompositeDisposable();
 
             // Create the client
             var serverOptions = {
@@ -138,54 +120,9 @@ class GoLanguageServer {
             );
 
             try {
-                // Start the client
                 client.start();
-
-                // Add the client to the subscriptions to be cleaned up
-                this.lcCommands.add(client);
+                nova.subscriptions.add(client);
                 this.languageClient = client;
-
-                // Add extension commands dependent on gopls
-                this.lcCommands.add(
-                    nova.commands.register(
-                        exItem('cmd.organizeImports'),
-                        (editor) => commands.OrganizeImports(editor, client)
-                    )
-                );
-                this.lcCommands.add(
-                    nova.commands.register(exItem('cmd.formatFile'), (editor) =>
-                        commands.FormatFile(editor, client)
-                    )
-                );
-                this.lcCommands.add(
-                    nova.commands.register(
-                        exItem('cmd.findReferences'),
-                        (editor) => commands.FindReferences(editor, client)
-                    )
-                );
-                this.lcCommands.add(
-                    nova.commands.register(
-                        exItem('cmd.findImplementations'),
-                        (editor) => commands.FindImplementations(editor, client)
-                    )
-                );
-                this.lcCommands.add(
-                    nova.commands.register(
-                        exItem('cmd.findDefinition'),
-                        (editor) => commands.FindDefinition(editor, client)
-                    )
-                );
-                this.lcCommands.add(
-                    nova.commands.register(
-                        exItem('cmd.findTypeDefinition'),
-                        (editor) => commands.FindTypeDefinition(editor, client)
-                    )
-                );
-                this.lcCommands.add(
-                    nova.commands.register(exItem('cmd.jumpBack'), (editor) =>
-                        commands.JumpBack(editor, client)
-                    )
-                );
             } catch (err) {
                 return reject(err);
             }
@@ -199,6 +136,7 @@ class GoLanguageServer {
                     this.languageClient.running
                 ) {
                     clearInterval(i);
+                    this.registerCommands();
                     resolve('gopls is running');
                 }
                 if (tries < 1) {
@@ -223,10 +161,8 @@ class GoLanguageServer {
                     resolve('gopls stopped');
                 });
                 this.languageClient.stop();
-                this.lcCommands.remove(this.languageClient);
-                this.lcCommands.dispose();
+                nova.subscriptions.remove(this.languageClient);
                 this.languageClient = null;
-                this.lcCommands = null;
             } else {
                 resolve('gopls is not running');
             }
@@ -244,5 +180,55 @@ class GoLanguageServer {
 
     client() {
         return this.languageClient;
+    }
+
+    // Register extension commands that depend on the language client
+    registerCommands() {
+        if (!this.lcCommandsRegistered) {
+            nova.commands.register(
+                exItem('cmd.organizeImports'),
+                (editor) =>
+                    commands.OrganizeImports(editor, this.languageClient),
+                this
+            );
+            nova.commands.register(
+                exItem('cmd.formatFile'),
+                (editor) => commands.FormatFile(editor, this.languageClient),
+                this
+            );
+            nova.commands.register(
+                exItem('cmd.findReferences'),
+                (editor) =>
+                    commands.FindReferences(editor, this.languageClient),
+                this
+            );
+            nova.commands.register(
+                exItem('cmd.findImplementations'),
+                (editor) =>
+                    commands.FindImplementations(editor, this.languageClient),
+                this
+            );
+            nova.commands.register(
+                exItem('cmd.findDefinition'),
+                (editor) =>
+                    commands.FindDefinition(editor, this.languageClient),
+                this
+            );
+            nova.commands.register(
+                exItem('cmd.findTypeDefinition'),
+                (editor) =>
+                    commands.FindTypeDefinition(editor, this.languageClient),
+                this
+            );
+            nova.commands.register(
+                exItem('cmd.jumpBack'),
+                (editor) => commands.JumpBack(editor, this.languageClient),
+                this
+            );
+            this.lcCommandsRegistered = true;
+            console.log('Registered language client commands');
+        } else {
+            console.log('Language client commands are already registered');
+        }
     }
 }
