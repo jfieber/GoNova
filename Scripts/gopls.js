@@ -1,17 +1,5 @@
 // Routines for working with gopls.
 
-function enabled() {
-    return nova.config.get(exItem('gopls-enabled'), 'boolean');
-}
-
-function enable() {
-    return nova.config.set(exItem('gopls-enabled'), true);
-}
-
-function disable() {
-    return nova.config.set(exItem('gopls-enabled'), false);
-}
-
 // Preferences for gopls
 const goplsConfPath = require('../gopls.json');
 const goplsConfPrefix = 'gopls.';
@@ -164,7 +152,4 @@ exports.ToolPath = toolPath;
 exports.Install = installGopls;
 exports.Version = goplsVersion;
 exports.Env = goEnv;
-exports.Enabled = enabled;
-exports.Enable = enable;
-exports.Disabled = disable;
 exports.Settings = goplsSettings;

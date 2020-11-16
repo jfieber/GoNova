@@ -19,13 +19,11 @@ function plog(prefix) {
 var gls = null;
 
 exports.activate = () => {
-    // Do work when the extension is activated.
     gls = new GoLanguageServer();
     gls.start().then(plog('activate')).catch(plog('activate warning'));
 };
 
 exports.deactivate = () => {
-    // Clean up state before the extension is deactivated
     if (gls !== null) {
         gls.dispose();
         gls = null;
@@ -47,18 +45,10 @@ class GoLanguageServer {
             // return or tab, it will revert to the default of 'gopls'.
             // But on the way there, we get called once with with current === null
             // and again with current === previous, both of which we need to ignore.
-            if (current && current != previous && gopls.Enabled()) {
+            if (current && current != previous) {
                 this.restart()
                     .then(plog('gopls path change'))
                     .catch(plog('gopls restart failed after path change'));
-            }
-        });
-
-        nova.config.onDidChange(exItem('gopls-enabled'), (enabled) => {
-            if (enabled) {
-                this.start().then(plog('enable')).catch(plog('enable fail'));
-            } else {
-                this.stop().then(plog('disable')).catch(plog('disable fail'));
             }
         });
 
@@ -77,9 +67,6 @@ class GoLanguageServer {
         return new Promise((resolve, reject) => {
             if (this.languageClient) {
                 return resolve('gopls is already running');
-            }
-            if (!gopls.Enabled()) {
-                return reject('gopls is not enabled');
             }
             if (!nova.workspace.path) {
                 return reject('The Nova workspace has no path!');
@@ -176,10 +163,6 @@ class GoLanguageServer {
             })
             .then(plog('restart'))
             .catch(plog('restart fail'));
-    }
-
-    client() {
-        return this.languageClient;
     }
 
     // Register extension commands that depend on the language client
