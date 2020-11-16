@@ -33,38 +33,6 @@
         ],
         "editor": [
             {
-                "title": "Organize Imports",
-                "command": "org.ursamaris.nova.go.cmd.organizeImports",
-                "when": "editorHasFocus",
-                "filters": {
-                    "syntaxes": ["go"]
-                }
-            },
-            {
-                "title": "Format File",
-                "command": "org.ursamaris.nova.go.cmd.formatFile",
-                "when": "editorHasFocus",
-                "filters": {
-                    "syntaxes": ["go"]
-                }
-            },
-            {
-                "title": "Find References",
-                "command": "org.ursamaris.nova.go.cmd.findReferences",
-                "when": "editorHasFocus",
-                "filters": {
-                    "syntaxes": ["go"]
-                }
-            },
-            {
-                "title": "Find Implementations",
-                "command": "org.ursamaris.nova.go.cmd.findImplementations",
-                "when": "editorHasFocus",
-                "filters": {
-                    "syntaxes": ["go"]
-                }
-            },
-            {
                 "title": "Find Definition",
                 "command": "org.ursamaris.nova.go.cmd.findDefinition",
                 "when": "editorHasFocus",
@@ -81,8 +49,42 @@
                 }
             },
             {
+                "title": "Find Implementations",
+                "command": "org.ursamaris.nova.go.cmd.findImplementations",
+                "when": "editorHasFocus",
+                "filters": {
+                    "syntaxes": ["go"]
+                }
+            },
+            {
+                "title": "Find References",
+                "command": "org.ursamaris.nova.go.cmd.findReferences",
+                "when": "editorHasFocus",
+                "filters": {
+                    "syntaxes": ["go"]
+                }
+            },
+            { "separator": true },
+            {
                 "title": "Jump Back",
                 "command": "org.ursamaris.nova.go.cmd.jumpBack",
+                "when": "editorHasFocus",
+                "filters": {
+                    "syntaxes": ["go"]
+                }
+            },
+            { "separator": true },
+            {
+                "title": "Organize Imports",
+                "command": "org.ursamaris.nova.go.cmd.organizeImports",
+                "when": "editorHasFocus",
+                "filters": {
+                    "syntaxes": ["go"]
+                }
+            },
+            {
+                "title": "Format File",
+                "command": "org.ursamaris.nova.go.cmd.formatFile",
                 "when": "editorHasFocus",
                 "filters": {
                     "syntaxes": ["go"]
