@@ -51,25 +51,8 @@ exports.InstallGopls = (workspace, gls) => {
                     .Install(iversion)
                     .then((v) => {
                         let imsg = `Installed gopls ${v.version} at ${v.path}`;
-                        if (!gopls.Enabled()) {
-                            let emsg = `The language server is not enabled. Enable it now?`;
-                            workspace.showActionPanel(
-                                [imsg, emsg].join('\n\n'),
-                                {
-                                    buttons: ['Enable', 'Cancel'],
-                                },
-                                (i) => {
-                                    if (i === 0) {
-                                        gopls.Enable();
-                                    }
-                                }
-                            );
-                        } else {
-                            workspace.showInformativeMessage(imsg);
-                            if (gopls.Enabled()) {
-                                gls.restart();
-                            }
-                        }
+                        workspace.showInformativeMessage(imsg);
+                        gls.restart();
                     })
                     .catch((v) => {
                         workspace.showInformativeMessage(

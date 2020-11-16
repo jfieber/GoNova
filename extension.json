@@ -27,7 +27,7 @@
                 "command": "org.ursamaris.nova.go.cmd.restartGopls"
             },
             {
-                "title": "Install/Update Go Language Server",
+                "title": "Install/Update Go Language Server…",
                 "command": "org.ursamaris.nova.go.cmd.installGopls"
             }
         ],
