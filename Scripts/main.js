@@ -3,6 +3,7 @@ const commands = require('commands.js');
 
 // gopls utilities
 const gopls = require('gopls.js');
+const lsp = require('lsp.js');
 
 // Append an extension config/command name to the extension prefix
 function exItem(name) {
@@ -124,6 +125,7 @@ class GoLanguageServer {
                 ) {
                     clearInterval(i);
                     this.registerCommands();
+                    this.registerHooks();
                     resolve('gopls is running');
                 }
                 if (tries < 1) {
@@ -212,6 +214,32 @@ class GoLanguageServer {
             console.log('Registered language client commands');
         } else {
             console.log('Language client commands are already registered');
+        }
+    }
+
+    registerHooks() {
+        if (!this.lcHooksRegistered) {
+            nova.workspace.onDidAddTextEditor((editor) => {
+                editor.onDidSave(() => {
+                    console.log('Saved complete');
+                });
+                editor.onWillSave((editor) => {
+                    if (editor.document.syntax === 'go') {
+                        if (nova.config.get(exItem('fmtsave'))) {
+                            console.info('fmtsave entry');
+                            return commands
+                                .FormatFile(editor, this.languageClient)
+                                .then(() => {
+                                    console.info('fmtsave done');
+                                });
+                        }
+                    }
+                }, this);
+            }, this);
+            this.lcHooksRegistered = true;
+            console.log('Registered language client hooks');
+        } else {
+            console.log('Hooks already registered');
         }
     }
 }

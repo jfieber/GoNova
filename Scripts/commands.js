@@ -108,15 +108,16 @@ exports.FormatFile = (editor, lclient) => {
             },
             options: {},
         };
-        lclient
+        return lclient
             .sendRequest(cmd, cmdArgs)
             .then((response) => {
                 if (response !== null && response !== undefined) {
-                    lsp.ApplyTextEdits(editor, response);
+                    return lsp.ApplyTextEdits(editor, response);
                 }
             })
             .catch((err) => {
                 console.error(`${cmd} error!:`, err);
+                reject();
             });
     }
 };

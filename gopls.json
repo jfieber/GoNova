@@ -9,6 +9,18 @@
         "filetype": ["public.unix-executable"]
     },
     {
+        "key": "org.ursamaris.nova.go.fmtsave",
+        "title": "Format on save",
+        "type": "boolean",
+        "default": true
+    },
+    {
+        "key": "org.ursamaris.nova.go.impsave",
+        "title": "Organize imports on save",
+        "type": "boolean",
+        "default": true
+    },
+    {
         "key": "gopls-supported",
         "title": "Standard gopls settings",
         "type": "section",

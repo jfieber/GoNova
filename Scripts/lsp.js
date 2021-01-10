@@ -50,10 +50,10 @@ exports.LspRangeToRange = (document, range) => {
 exports.ApplyTextDocumentEdit = (tde) => {
     if (tde && tde.textDocument && tde.edits) {
         // Obtain a Nova TextEditor for the document
-        nova.workspace
+        return nova.workspace
             .openFile(tde.textDocument.uri)
             .then((editor) => {
-                exports.ApplyTextEdits(editor, tde.edits);
+                return exports.ApplyTextEdits(editor, tde.edits);
             })
             .catch((err) => {
                 console.error('error opening file', err);
@@ -66,7 +66,7 @@ exports.ApplyTextDocumentEdit = (tde) => {
 // Apply a TextEdit[]
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textEdit
 exports.ApplyTextEdits = (editor, edits) => {
-    editor
+    return editor
         .edit((tee) => {
             edits.reverse().forEach((e) => {
                 var r0 = exports.LspRangeToRange(editor.document, e.range);
