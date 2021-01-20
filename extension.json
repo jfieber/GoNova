@@ -8,6 +8,8 @@
     "categories": ["languages"],
     "keywords": ["go", "golang"],
     "license": "MIT",
+    "repository": "https://github.com/jfieber/GoNova.novaextension",
+    "bugs": "https://github.com/jfieber/GoNova.novaextension/issues",
 
     "main": "main.js",
 
