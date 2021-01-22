@@ -38,6 +38,7 @@
                 "title": "Build Flags",
                 "description": "The set of flags passed on to the build system when invoked. It is applied to queries like go list, which is used when discovering files. The most common use is to set -tags.",
                 "type": "stringArray",
+                "default": [],
                 "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#buildflags-string"
             },
             {

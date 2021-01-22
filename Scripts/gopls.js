@@ -8,18 +8,22 @@ const goplsConfPrefix = 'gopls.';
 // passed to the gopls initialization.
 function goplsSettings() {
     let conf = {};
-    ['gopls-supported', 'gopls-experimental'].forEach((section) => {
-        var cs = goplsConfPath.find((i) => i.key === section);
-        if (Array.isArray(cs.children)) {
-            return cs.children.forEach((ci) => {
-                if (ci.key.indexOf(goplsConfPrefix) === 0) {
-                    conf[ci.key.replace(goplsConfPrefix, '')] = nova.config.get(
-                        ci.key
-                    );
+    const collect = function (n) {
+        if (Array.isArray(n)) {
+            n.forEach((ci) => {
+                if (ci.type === 'section') {
+                    collect(ci.children);
+                } else {
+                    if (ci.key.indexOf(goplsConfPrefix) === 0) {
+                        conf[
+                            ci.key.replace(goplsConfPrefix, '')
+                        ] = nova.config.get(ci.key);
+                    }
                 }
             });
         }
-    });
+    };
+    collect(goplsConfPath);
     return conf;
 }
 
