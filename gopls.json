@@ -1,37 +1,136 @@
 [
     {
-        "key": "org.ursamaris.nova.go.gopls-path",
-        "title": "Language Server Command",
-        "link": "https://github.com/golang/tools/blob/master/gopls/README.md",
-        "description": "The command name to start the gopls language server. Use an absolute path here if gopls is not in your search path.",
-        "type": "path",
-        "default": "gopls",
-        "filetype": ["public.unix-executable"]
-    },
-    {
-        "key": "org.ursamaris.nova.go.fmtsave",
-        "title": "Format on save",
-        "type": "boolean",
-        "default": true
-    },
-    {
-        "key": "org.ursamaris.nova.go.impsave",
-        "title": "Organize imports on save",
-        "type": "boolean",
-        "default": true
-    },
-    {
-        "key": "gopls-supported",
-        "title": "Standard gopls settings",
+        "key": "gonova",
+        "title": "Go Nova",
         "type": "section",
-        "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#officially-supported",
+        "children": [
+            {
+                "key": "org.ursamaris.nova.go.gopls-path",
+                "title": "Language Server Command",
+                "link": "https://github.com/golang/tools/blob/master/gopls/README.md",
+                "description": "The command name to start the gopls language server. Use an absolute path here if gopls is not in your search path.",
+                "type": "path",
+                "default": "gopls",
+                "filetype": ["public.unix-executable"]
+            },
+            {
+                "key": "org.ursamaris.nova.go.fmtsave",
+                "title": "Format on save",
+                "type": "boolean",
+                "default": false
+            },
+            {
+                "key": "org.ursamaris.nova.go.impsave",
+                "title": "Organize imports on save",
+                "type": "boolean",
+                "default": false
+            }
+        ]
+    },
+    {
+        "key": "gopls-build",
+        "title": "Build",
+        "type": "section",
+        "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#build",
+        "children": [
+            {
+                "key": "gopls.buildFlags",
+                "title": "Build Flags",
+                "description": "The set of flags passed on to the build system when invoked. It is applied to queries like go list, which is used when discovering files. The most common use is to set -tags.",
+                "type": "stringArray",
+                "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#buildflags-string"
+            },
+            {
+                "key": "gopls.directoryFilters",
+                "title": "Directory Filters",
+                "description": "Directory Filters can be used to exclude unwanted directories from the workspace. By default, all directories are included. Filters are an operator, + to include and - to exclude, followed by a path prefix relative to the workspace folder. They are evaluated in order, and the last filter that applies to a path controls whether it is included. The path prefix can be empty, so an initial - excludes everything.",
+                "type": "stringArray",
+                "default": [],
+                "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#directoryfilters-string"
+            }
+        ]
+    },
+    {
+        "key": "gopls-formatting",
+        "title": "Formatting",
+        "type": "section",
+        "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#formatting",
+        "children": [
+            {
+                "key": "gopls.local",
+                "title": "Local Imports",
+                "description": "The equivalent of the goimports -local flag, which puts imports beginning with this string after 3rd-party packages. It should be the prefix of the import path whose imports should be grouped separately.",
+                "type": "string",
+                "default": "",
+                "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#local-string"
+            },
+            {
+                "key": "gopls.gofumpt",
+                "title": "gofumpt",
+                "description": "Use gofumpt for formatting",
+                "type": "boolean",
+                "default": false,
+                "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#gofumpt-bool"
+            }
+        ]
+    },
+    {
+        "key": "gopls-ui",
+        "title": "UI",
+        "type": "section",
+        "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#ui",
         "children": [
             {
                 "key": "gopls.usePlaceholders",
                 "title": "Use Placeholders",
-                "description": "Enables placeholders for function parameters or struct fields in completion responses.",
+                "description": "enables placeholders for function parameters or struct fields in completion responses.",
                 "type": "boolean",
-                "default": false
+                "default": false,
+                "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#useplaceholders-bool"
+            },
+            {
+                "key": "gopls.linkTarget",
+                "title": "Link Target",
+                "description": "Controls where documentation links go.",
+                "type": "enum",
+                "values": ["godoc.org", "pkg.go.dev"],
+                "default": "pkg.go.dev",
+                "allowCustom": true,
+                "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#linktarget-string"
+            },
+            {
+                "key": "gopls.linksInHover",
+                "title": "Hover Links",
+                "description": "Toggles the presence of links to documentation in hover.",
+                "type": "boolean",
+                "default": true,
+                "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#linksinhover-bool"
+            },
+            {
+                "key": "gopls.importShortcut",
+                "title": "Import Shortcut",
+                "description": "Specifies whether import statements should link to documentation or go to definitions.",
+                "type": "enum",
+                "values": ["Both", "Definition", "Link"],
+                "default": "Both",
+                "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#importshortcut-enum"
+            }
+        ]
+    },
+    {
+        "key": "gopls-advanced",
+        "title": "Advanced",
+        "description": "These are advanced settings and should not be configured by most gopls users.",
+        "type": "section",
+        "children": [
+            {
+                "key": "gopls.matcher",
+                "title": "Completion Matching",
+                "description": "Sets the algorithm that is used when calculating completion candidates. This is an advanced setting and should not be configured by most gopls users.",
+                "type": "enum",
+                "values": ["CaseInsensitive", "CaseSensitive", "Fuzzy"],
+                "default": "Fuzzy",
+                "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#matcher-enum"
             },
             {
                 "key": "gopls.hoverKind",
@@ -45,162 +144,35 @@
                     "Structured",
                     "SynopsisDocumentation"
                 ],
-                "default": "FullDocumentation"
-            },
-            {
-                "key": "gopls.linkTarget",
-                "title": "Link Target",
-                "description": "Controls where documentation links go.",
-                "type": "enum",
-                "values": ["godoc.org", "pkg.go.dev"],
-                "default": "pkg.go.dev",
-                "allowCustom": true
-            },
-            {
-                "key": "gopls.local",
-                "title": "Local Imports",
-                "description": "The equivalent of the goimports -local flag, which puts imports beginning with this string after 3rd-party packages. It should be the prefix of the import path whose imports should be grouped separately.",
-                "type": "string",
-                "default": ""
-            },
-            {
-                "key": "gopls.gofumpt",
-                "title": "gofumpt",
-                "description": "Use gofumpt for formatting",
-                "type": "boolean",
-                "default": false
-            }
-        ]
-    },
-    {
-        "key": "gopls-experimental",
-        "title": "Experimental gopls settings",
-        "type": "section",
-        "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#experimental",
-        "children": [
-            {
-                "key": "gopls.completionDocumentation",
-                "title": "Completion Documentation",
-                "description": "Enable documentation with completion results",
-                "type": "boolean",
-                "default": true
-            },
-            {
-                "key": "gopls.completeUnimported",
-                "title": "Complete Unimported",
-                "description": "Enable completion for packages that you do not currently imported",
-                "type": "boolean",
-                "default": true
-            },
-            {
-                "key": "gopls.deepCompletion",
-                "title": "Deep Completion",
-                "description": "Enable the ability to return completions from deep inside relevant entities, rather than just the locally accessible ones.",
-                "type": "boolean",
-                "default": true
-            },
-            {
-                "key": "gopls.matcher",
-                "title": "Completion Matching",
-                "description": "Sets the algorithm that is used when calculating completion candidates.",
-                "type": "enum",
-                "values": ["CaseInsensitive", "CaseSensitive", "Fuzzy"],
-                "default": "Fuzzy"
+                "default": "FullDocumentation",
+                "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#hoverkind-enum"
             },
             {
                 "key": "gopls.symbolMatcher",
                 "title": "Symbol Matching",
-                "description": "Sets the algorithm that is used when finding workspace symbols.",
+                "description": "Sets the algorithm that is used when finding workspace symbols. This is an advanced setting and should not be configured by most gopls users.",
                 "type": "enum",
                 "values": ["CaseInsensitive", "CaseSensitive", "Fuzzy"],
-                "default": "Fuzzy"
+                "default": "Fuzzy",
+                "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#symbolmatcher-enum"
             },
             {
                 "key": "gopls.symbolStyle",
                 "title": "Symbol Style",
-                "description": "Controls how symbols are qualified in symbol responses.",
+                "description": "Controls how symbols are qualified in symbol responses. This is an advanced setting and should not be configured by most gopls users.",
                 "type": "enum",
                 "values": ["Dynamic", "Full", "Package"],
-                "default": "Package"
-            },
-            {
-                "key": "gopls.linksInHover",
-                "title": "Hover Links",
-                "description": "Toggles the presence of links to documentation in hover.",
-                "type": "boolean",
-                "default": true
-            },
-            {
-                "key": "gopls.tempModfile",
-                "title": "Temporary mod File",
-                "description": "Controls the use of the -modfile flag in Go 1.14.",
-                "type": "boolean",
-                "default": true
-            },
-            {
-                "key": "gopls.importShortcut",
-                "title": "Import Shortcut",
-                "description": "Specifies whether import statements should link to documentation or go to definitions.",
-                "type": "enum",
-                "values": ["Both", "Definition", "Link"],
-                "default": "Both"
-            },
-            {
-                "key": "gopls.verboseWorkDoneProgress",
-                "title": "Verbose Work Done Progress",
-                "description": "Controls whether the LSP server should send progress reports for all work done outside the scope of an RPC.",
-                "type": "boolean",
-                "default": false
-            },
-            {
-                "key": "gopls.semanticTokens",
-                "title": "Semantic Tokens",
-                "description": "Controls whether the LSP server will send semantic tokens to the client.",
-                "type": "boolean",
-                "default": false
-            },
-            {
-                "key": "gopls.expandWorkspaceToModule",
-                "title": "Expand Workspace to Module",
-                "description": "instructs gopls to expand the scope of the workspace to include the modules containing the workspace folders. Set this to false to avoid loading your entire module. This is particularly useful for those working in a monorepo.",
-                "type": "boolean",
-                "default": true
-            },
-            {
-                "key": "gopls.experimentalWorkspaceModule",
-                "title": "Multi-module Workspaces",
-                "description": "Opts a user into the experimental support for multi-module workspaces.",
-                "type": "boolean",
-                "default": false
-            },
-            {
-                "key": "gopls.experimentalDiagnosticsDelay",
-                "title": "Diagnostic Delay",
-                "description": "Controls the amount of time that gopls waits after the most recent file modification before computing deep diagnostics. Simple diagnostics (parsing and type-checking) are always run immediately on recently modified packages.\n\nThis option must be set to a valid duration string, for example \"250ms\".",
-                "type": "string",
-                "default": "0s"
-            },
-            {
-                "key": "gopls.experimentalPackageCacheKey",
-                "title": "Package Cache Key",
-                "description": "Controls whether to use a coarser cache key for package type information to increase cache hits. This setting removes the user's environment, build flags, and working directory from the cache key, which should be a safe change as all relevant inputs into the type checking pass are already hashed into the key. This is temporarily guarded by an experiment because caching behavior is subtle and difficult to comprehensively test.",
-                "type": "boolean",
-                "default": false
+                "default": "Dynamic",
+                "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#symbolstyle-enum"
             },
             {
                 "key": "gopls.verboseOutput",
                 "title": "Verbose Output",
                 "description": "Enables additional debug logging.",
                 "type": "boolean",
-                "default": false
-            }
-        ]
-    },
-    {
-        "key": "gopls-debug",
-        "title": "Nova Extension Debugging",
-        "type": "section",
-        "children": [
+                "default": false,
+                "link": "https://github.com/golang/tools/blob/master/gopls/doc/settings.md#verboseoutput-bool"
+            },
             {
                 "key": "org.ursamaris.nova.go.gopls-trace",
                 "title": "Enable RPC trace",
