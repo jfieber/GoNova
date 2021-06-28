@@ -1,21 +1,11 @@
 // Extension commands
 const commands = require('commands.js');
 const tasks = require('tasks.js');
+const ext = require('ext.js');
 
 // gopls utilities
 const gopls = require('gopls.js');
 const lsp = require('lsp.js');
-
-// Append an extension config/command name to the extension prefix
-function exItem(name) {
-    return [nova.extension.identifier, name].join('.');
-}
-
-function plog(prefix) {
-    return (msg) => {
-        console.info(`${prefix}: ${msg}`);
-    };
-}
 
 // Language server instance
 var gls = null;
@@ -23,7 +13,7 @@ var gls = null;
 exports.activate = () => {
     // tasks.CreateTasks();
     gls = new GoLanguageServer();
-    gls.start().then(plog('activate')).catch(plog('activate warning'));
+    gls.start().then(ext.plog('activate')).catch(ext.plog('activate warning'));
 };
 
 exports.deactivate = () => {
@@ -36,34 +26,34 @@ exports.deactivate = () => {
 class GoLanguageServer {
     constructor() {
         nova.commands.register(
-            exItem('cmd.installGopls'),
+            ext.ns('cmd.installGopls'),
             (workspace) => commands.InstallGopls(workspace, this),
             this
         );
-        nova.commands.register(exItem('cmd.restartGopls'), this.restart, this);
+        nova.commands.register(ext.ns('cmd.restartGopls'), this.restart, this);
 
         // Observe the configuration setting for the server's location, and restart the server on change
-        nova.config.onDidChange(exItem('gopls-path'), (current, previous) => {
+        nova.config.onDidChange(ext.ns('gopls-path'), (current, previous) => {
             // If the user deletes the value in the preferences and presses
             // return or tab, it will revert to the default of 'gopls'.
             // But on the way there, we get called once with with current === null
             // and again with current === previous, both of which we need to ignore.
             if (current && current != previous) {
                 this.restart()
-                    .then(plog('gopls path change'))
-                    .catch(plog('gopls restart failed after path change'));
+                    .then(ext.plog('gopls path change'))
+                    .catch(ext.plog('gopls restart failed after path change'));
             }
         });
 
-        nova.config.onDidChange(exItem('gopls-trace'), (current) => {
+        nova.config.onDidChange(ext.ns('gopls-trace'), (current) => {
             this.restart()
-                .then(plog(`gopls-trace set to ${current}`))
-                .catch(plog(`gopls-trace restart fail`));
+                .then(ext.plog(`gopls-trace set to ${current}`))
+                .catch(ext.plog(`gopls-trace restart fail`));
         });
     }
 
     deactivate() {
-        this.stop().then(plog('deactivate')).catch('deactivate fail');
+        this.stop().then(ext.plog('deactivate')).catch('deactivate fail');
     }
 
     start() {
@@ -93,7 +83,7 @@ class GoLanguageServer {
                 path: vp.path,
                 args: ['serve'],
             };
-            if (nova.config.get(exItem('gopls-trace'), 'boolean')) {
+            if (nova.config.get(ext.ns('gopls-trace'), 'boolean')) {
                 console.log('gopls rpc tracing is enabled');
                 serverOptions.args = serverOptions.args.concat(['-rpc.trace']);
             }
@@ -168,50 +158,50 @@ class GoLanguageServer {
             .then(() => {
                 return this.start();
             })
-            .then(plog('restart'))
-            .catch(plog('restart fail'));
+            .then(ext.plog('restart'))
+            .catch(ext.plog('restart fail'));
     }
 
     // Register extension commands that depend on the language client
     registerCommands() {
         if (!this.lcCommandsRegistered) {
             nova.commands.register(
-                exItem('cmd.organizeImports'),
+                ext.ns('cmd.organizeImports'),
                 (editor) =>
                     commands.OrganizeImports(editor, this.languageClient),
                 this
             );
             nova.commands.register(
-                exItem('cmd.formatFile'),
+                ext.ns('cmd.formatFile'),
                 (editor) => commands.FormatFile(editor, this.languageClient),
                 this
             );
             nova.commands.register(
-                exItem('cmd.findReferences'),
+                ext.ns('cmd.findReferences'),
                 (editor) =>
                     commands.FindReferences(editor, this.languageClient),
                 this
             );
             nova.commands.register(
-                exItem('cmd.findImplementations'),
+                ext.ns('cmd.findImplementations'),
                 (editor) =>
                     commands.FindImplementations(editor, this.languageClient),
                 this
             );
             nova.commands.register(
-                exItem('cmd.findDefinition'),
+                ext.ns('cmd.findDefinition'),
                 (editor) =>
                     commands.FindDefinition(editor, this.languageClient),
                 this
             );
             nova.commands.register(
-                exItem('cmd.findTypeDefinition'),
+                ext.ns('cmd.findTypeDefinition'),
                 (editor) =>
                     commands.FindTypeDefinition(editor, this.languageClient),
                 this
             );
             nova.commands.register(
-                exItem('cmd.jumpBack'),
+                ext.ns('cmd.jumpBack'),
                 (editor) => commands.JumpBack(editor, this.languageClient),
                 this
             );
@@ -230,7 +220,7 @@ class GoLanguageServer {
                 });
                 editor.onWillSave((editor) => {
                     if (editor.document.syntax === 'go') {
-                        if (nova.config.get(exItem('fmtsave'))) {
+                        if (nova.config.get(ext.ns('fmtsave'))) {
                             console.info('fmtsave entry');
                             return commands
                                 .FormatFile(editor, this.languageClient)

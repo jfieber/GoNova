@@ -1,9 +1,10 @@
 // Routines for working with gopls.
+const ext = require('ext.js');
 
 // Obtain the gopls path and version.
 async function Version() {
     const ver = {
-        path: ToolPath(nova.config.get(exItem('gopls-path'), 'string')),
+        path: ToolPath(nova.config.get(ext.ns('gopls-path'), 'string')),
         version: null,
     };
     if (ver.path !== undefined) {
@@ -20,14 +21,13 @@ async function Version() {
 // Install a version of gopls
 async function Install(version) {
     console.log(`installing gopls version ${version}`);
-    const options = {
-        args: ['get', `golang.org/x/tools/gopls@${version}`],
+    await Go({
+        args: ['install', `golang.org/x/tools/gopls@${version}`],
         cwd: '/tmp',
         env: {
             GO111MODULE: 'on',
         },
-    };
-    await NovaExec(ToolPath('go'), options);
+    });
     return Version();
 }
 
@@ -82,10 +82,7 @@ async function GoVersion() {
 }
 
 function Go(options) {
-    return new Promise((resolve, reject) => {
-        const go = ToolPath('go');
-        NovaExec(go, options).then(resolve).catch(reject);
-    });
+    return NovaExec(ToolPath('go'), options);
 }
 
 //
@@ -100,12 +97,12 @@ function Go(options) {
 //
 function NovaExec(command, options) {
     return new Promise((resolve, reject) => {
-        let retVal = {
+        const retVal = {
             status: 0,
             stdout: [],
             stderr: [],
         };
-        let cmd = new Process(command, options || {});
+        const cmd = new Process(command, options || {});
         cmd.onStdout((l) => {
             retVal.stdout.push(l.trim());
         });
@@ -128,10 +125,6 @@ function NovaExec(command, options) {
             reject(retVal);
         }
     });
-}
-
-function exItem(name) {
-    return [nova.extension.identifier, name].join('.');
 }
 
 // Publish
