@@ -45,20 +45,18 @@ exports.InstallGopls = (workspace, gls) => {
             placeholder: 'latest',
             value: 'latest',
         },
-        (iversion) => {
+        async (iversion) => {
             if (iversion) {
-                gopls
-                    .Install(iversion)
-                    .then((v) => {
-                        let imsg = `Installed gopls ${v.version} at ${v.path}`;
-                        workspace.showInformativeMessage(imsg);
-                        gls.restart();
-                    })
-                    .catch((v) => {
-                        workspace.showInformativeMessage(
-                            `Error installing gopls:\n\n${v}`
-                        );
-                    });
+                try {
+                    const v = await gopls.Install(iversion);
+                    let imsg = `Installed gopls ${v.version} at ${v.path}`;
+                    workspace.showInformativeMessage(imsg);
+                    gls.restart();
+                } catch (e) {
+                    workspace.showInformativeMessage(
+                        `Error installing gopls:\n\n${JSON.stringify(e)}`
+                    );
+                }
             }
         }
     );

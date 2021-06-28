@@ -1,5 +1,6 @@
 // Extension commands
 const commands = require('commands.js');
+const tasks = require('tasks.js');
 
 // gopls utilities
 const gopls = require('gopls.js');
@@ -16,53 +17,18 @@ function plog(prefix) {
     };
 }
 
-function createTasks() {
-    let go = gopls.ToolPath('go');
-    if (!go) {
-        console.warn("Couldn't find go executable");
-        return;
-    }
-
-    let tasks = [];
-    let modTidy = new Task('Mod Tidy');
-    modTidy.setAction(
-        Task.Build,
-        new TaskProcessAction(go, {
-            args: ['mod', 'tidy'],
-            env: {},
-        })
-    );
-    tasks.push(modTidy);
-
-    let modVendor = new Task('Mod Vendor');
-    modVendor.setAction(
-        Task.Build,
-        new TaskProcessAction(go, {
-            args: ['mod', 'vendor'],
-            env: {},
-        })
-    );
-    tasks.push(modVendor);
-
-    nova.assistants.registerTaskAssistant({
-        provideTasks: function () {
-            return [modTidy, modVendor];
-        },
-    });
-}
-
 // Language server instance
 var gls = null;
 
 exports.activate = () => {
-    createTasks();
+    // tasks.CreateTasks();
     gls = new GoLanguageServer();
     gls.start().then(plog('activate')).catch(plog('activate warning'));
 };
 
 exports.deactivate = () => {
     if (gls !== null) {
-        gls.dispose();
+        gls.deactivate();
         gls = null;
     }
 };
@@ -96,12 +62,12 @@ class GoLanguageServer {
         });
     }
 
-    dispose() {
-        this.stop().then(plog('dispose')).catch('dispose fail');
+    deactivate() {
+        this.stop().then(plog('deactivate')).catch('deactivate fail');
     }
 
     start() {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             if (this.languageClient) {
                 return resolve('gopls is already running');
             }
@@ -109,30 +75,33 @@ class GoLanguageServer {
                 return reject('The Nova workspace has no path!');
             }
 
-            // Create the client
-            var serverOptions = {
-                path: gopls.ToolPath(
-                    nova.config.get(exItem('gopls-path'), 'string')
-                ),
-                args: ['serve'],
-            };
+            // console.log(`Go version: ${await gopls.GoVersion()}`);
+            // console.log(`Go Path: ${await gopls.GoEnv('GOPATH')}`);
 
-            if (serverOptions.path === undefined) {
+            // Find gopls
+            let vp = await gopls.Version();
+            if (vp.path === undefined) {
                 nova.workspace.showWarningMessage(
                     `Cannot locate gopls.\n\nMake sure it installed in $GOPATH/bin, somewhere in $PATH, or provide the full path in the ${nova.extension.name} extension config.`
                 );
                 return reject('cannot locate gopls');
             }
+            console.info(`gopls version: ${JSON.stringify(vp)}`);
+
+            // LanguageClient server options
+            var serverOptions = {
+                path: vp.path,
+                args: ['serve'],
+            };
             if (nova.config.get(exItem('gopls-trace'), 'boolean')) {
                 console.log('gopls rpc tracing is enabled');
                 serverOptions.args = serverOptions.args.concat(['-rpc.trace']);
             }
             console.log('server options:', JSON.stringify(serverOptions));
 
+            // LanguageClient client options
             var clientOptions = {
-                // The set of document syntaxes for which the server is valid
                 syntaxes: ['go'],
-                initializationOptions: gopls.Settings(),
             };
             console.log('client options:', JSON.stringify(clientOptions));
 
