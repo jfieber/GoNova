@@ -8,7 +8,7 @@ async function Version() {
         version: null,
     };
     if (ver.path !== undefined) {
-        const out = await NovaExec(ver.path, { args: ['version'] });
+        const out = await ext.exec(ver.path, { args: ['version'] });
         if (out.status !== 0) {
             console.error(`gopls return exit code ${exitCode}`);
         } else {
@@ -82,49 +82,7 @@ async function GoVersion() {
 }
 
 function Go(options) {
-    return NovaExec(ToolPath('go'), options);
-}
-
-//
-// Execute a command, with options as per the Nova Process API
-// and return an promise resolving/rejecting to an object:
-//
-// {
-//   status: number,
-//   stdout: string[],
-//   stderr: string[]
-// }
-//
-function NovaExec(command, options) {
-    return new Promise((resolve, reject) => {
-        const retVal = {
-            status: 0,
-            stdout: [],
-            stderr: [],
-        };
-        const cmd = new Process(command, options || {});
-        cmd.onStdout((l) => {
-            retVal.stdout.push(l.trim());
-        });
-        cmd.onStderr((l) => {
-            retVal.stderr.push(l.trim());
-        });
-        cmd.onDidExit((status) => {
-            retVal.status = status;
-            if (status === 0) {
-                resolve(retVal);
-            } else {
-                reject(retVal);
-            }
-        });
-        try {
-            cmd.start();
-        } catch (e) {
-            retVal.status = 128;
-            retVal.stderr = [e.message];
-            reject(retVal);
-        }
-    });
+    return ext.exec(ToolPath('go'), options);
 }
 
 // Publish
