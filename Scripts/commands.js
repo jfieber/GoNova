@@ -62,7 +62,7 @@ exports.InstallGopls = (workspace, gls) => {
     );
 };
 
-exports.OrganizeImports = (editor, lclient) => {
+exports.OrganizeImports = async (editor, lclient) => {
     if (lclient) {
         var cmd = 'textDocument/codeAction';
         var cmdArgs = {
@@ -72,32 +72,23 @@ exports.OrganizeImports = (editor, lclient) => {
             range: lsp.RangeToLspRange(editor.document, editor.selectedRange),
             context: { diagnostics: [] },
         };
-
-        lclient
-            .sendRequest(cmd, cmdArgs)
-            .then((response) => {
-                if (response !== null && response !== undefined) {
-                    response.forEach((action) => {
-                        if (action.kind === 'source.organizeImports') {
-                            console.info(
-                                `Performing actions for ${action.kind}`
-                            );
-                            action.edit.documentChanges.forEach((tde) => {
-                                lsp.ApplyTextDocumentEdit(tde);
-                            });
-                        } else {
-                            console.info(`Skipping action ${action.kind}`);
-                        }
-                    });
+        const response = await lclient.sendRequest(cmd, cmdArgs);
+        if (response !== null && response !== undefined) {
+            for (const action of response) {
+                if (action.kind === 'source.organizeImports') {
+                    console.info(`Performing actions for ${action.kind}`);
+                    for (const tde of action.edit.documentChanges) {
+                        await lsp.ApplyTextDocumentEdit(tde);
+                    }
+                } else {
+                    console.info(`Skipping action ${action.kind}`);
                 }
-            })
-            .catch((err) => {
-                console.error(`${cmd} error!:`, err);
-            });
+            }
+        }
     }
 };
 
-exports.FormatFile = (editor, lclient) => {
+exports.FormatFile = async (editor, lclient) => {
     if (lclient) {
         var cmd = 'textDocument/formatting';
         var cmdArgs = {
@@ -106,17 +97,10 @@ exports.FormatFile = (editor, lclient) => {
             },
             options: {},
         };
-        return lclient
-            .sendRequest(cmd, cmdArgs)
-            .then((response) => {
-                if (response !== null && response !== undefined) {
-                    return lsp.ApplyTextEdits(editor, response);
-                }
-            })
-            .catch((err) => {
-                console.error(`${cmd} error!:`, err);
-                reject();
-            });
+        const response = await lclient.sendRequest(cmd, cmdArgs);
+        if (response !== null && response !== undefined) {
+            await lsp.ApplyTextEdits(editor, response);
+        }
     }
 };
 

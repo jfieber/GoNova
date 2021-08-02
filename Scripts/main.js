@@ -218,15 +218,23 @@ class GoLanguageServer {
                 editor.onDidSave(() => {
                     console.log('Saved complete');
                 });
-                editor.onWillSave((editor) => {
+                editor.onWillSave(async (editor) => {
                     if (editor.document.syntax === 'go') {
                         if (nova.config.get(ext.ns('fmtsave'))) {
-                            console.info('fmtsave entry');
-                            return commands
-                                .FormatFile(editor, this.languageClient)
-                                .then(() => {
-                                    console.info('fmtsave done');
-                                });
+                            console.log('format on save...');
+                            await commands.FormatFile(
+                                editor,
+                                this.languageClient
+                            );
+                            console.log('format on save done');
+                        }
+                        if (nova.config.get(ext.ns('impsave'))) {
+                            console.log('organizing imports on save...');
+                            await commands.OrganizeImports(
+                                editor,
+                                this.languageClient
+                            );
+                            console.log('organizing imports on save done');
                         }
                     }
                 }, this);
