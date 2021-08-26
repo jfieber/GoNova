@@ -4,7 +4,7 @@
     "organization": "John Fieber",
     "description": "Go for Nova",
     "version": "1.0",
-    "min_runtime": "7.0",
+    "min_runtime": "7.3",
     "categories": ["languages"],
     "keywords": ["go", "golang"],
     "license": "MIT",

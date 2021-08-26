@@ -72,10 +72,10 @@ exports.ApplyTextDocumentEdit = async (tde) => {
 // Apply a TextEdit[]
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textEdit
 exports.ApplyTextEdits = async (editor, edits) => {
-    for (const e of edits.reverse()) {
-        const r = exports.LspRangeToRange(editor.document, e.range);
-        await editor.edit((tee) => {
+    await editor.edit((tee) => {
+        for (const e of edits.reverse()) {
+            const r = exports.LspRangeToRange(editor.document, e.range);
             tee.replace(r, e.newText);
-        });
-    }
+        }
+    });
 };
