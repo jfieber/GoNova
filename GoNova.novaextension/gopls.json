@@ -58,7 +58,14 @@
           {
             "key": "gopls.build.directoryFilters",
             "title": "directoryFilters",
-            "description": "directoryFilters can be used to exclude unwanted directories from the\nworkspace. By default, all directories are included. Filters are an\noperator, `+` to include and `-` to exclude, followed by a path prefix\nrelative to the workspace folder. They are evaluated in order, and\nthe last filter that applies to a path controls whether it is included.\nThe path prefix can be empty, so an initial `-` excludes everything.\n\nExamples:\nExclude node_modules: `-node_modules`\nInclude only project_a: `-` (exclude everything), `+project_a`\nInclude only project_a, but not node_modules inside it: `-`, `+project_a`, `-project_a/node_modules`\n",
+            "description": "directoryFilters can be used to exclude unwanted directories from the\nworkspace. By default, all directories are included. Filters are an\noperator, `+` to include and `-` to exclude, followed by a path prefix\nrelative to the workspace folder. They are evaluated in order, and\nthe last filter that applies to a path controls whether it is included.\nThe path prefix can be empty, so an initial `-` excludes everything.\n\nExamples:\n\nExclude node_modules: `-node_modules`\n\nInclude only project_a: `-` (exclude everything), `+project_a`\n\nInclude only project_a, but not node_modules inside it: `-`, `+project_a`, `-project_a/node_modules`\n",
+            "type": "stringArray",
+            "default": []
+          },
+          {
+            "key": "gopls.build.templateExtensions",
+            "title": "templateExtensions",
+            "description": "templateExtensions gives the extensions of file names that are treateed\nas template files. (The extension\nis the part of the file name after the final dot.)\n",
             "type": "stringArray",
             "default": []
           }
@@ -91,7 +98,7 @@
               {
                 "key": "gopls.ui.documentation.linkTarget",
                 "title": "linkTarget",
-                "description": "linkTarget controls where documentation links go.\nIt might be one of:\n\n* `\"godoc.org\"`\n* `\"pkg.go.dev\"`\n\nIf company chooses to use its own `godoc.org`, its address can be used as well.\n",
+                "description": "linkTarget controls where documentation links go.\nIt might be one of:\n\n* `\"godoc.org\"`\n* `\"pkg.go.dev\"`\n\nIf company chooses to use its own `godoc.org`, its address can be used as well.\n\nModules matching the GOPRIVATE environment variable will not have\ndocumentation links in hover.\n",
                 "type": "string",
                 "default": "pkg.go.dev"
               },
@@ -155,14 +162,15 @@
                 "values": [
                   "CaseInsensitive",
                   "CaseSensitive",
+                  "FastFuzzy",
                   "Fuzzy"
                 ],
-                "default": "Fuzzy"
+                "default": "FastFuzzy"
               },
               {
                 "key": "gopls.ui.navigation.symbolStyle",
                 "title": "symbolStyle",
-                "description": "symbolStyle controls how symbols are qualified in symbol responses.\n\nExample Usage:\n\n```json5\n\"gopls\": {\n...\n  \"symbolStyle\": \"dynamic\",\n...\n}\n```\n",
+                "description": "symbolStyle controls how symbols are qualified in symbol responses.\n\nExample Usage:\n\n```json5\n\"gopls\": {\n...\n  \"symbolStyle\": \"Dynamic\",\n...\n}\n```\n",
                 "type": "enum",
                 "values": [
                   "Dynamic",

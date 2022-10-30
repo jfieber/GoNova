@@ -1,0 +1,22 @@
+{
+  "name": "gonova",
+  "version": "1.1.0",
+  "description": "Nova extension for the Go programming language",
+  "dependencies": {},
+  "devDependencies": {
+    "tree-sitter-cli": "^0.20.7"
+  },
+  "scripts": {
+    "build": "./build.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jfieber/GoNova.novaextension.git"
+  },
+  "author": "John Fieber",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jfieber/GoNova.novaextension/issues"
+  },
+  "homepage": "https://github.com/jfieber/GoNova.novaextension#readme"
+}

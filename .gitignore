@@ -1,1 +1,3 @@
 .DS_Store
+node_modules
+GoNova.novaextension/Syntaxes/libtree-sitter-go.dylib
