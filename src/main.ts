@@ -1,29 +1,34 @@
 // Extension commands
-const commands = require('commands.js');
-const tasks = require('tasks.js');
-const ext = require('ext.js');
+import * as commands from "./commands";
+// import * as tasks from "./tasks";
+import * as ext from "./ext";
 
 // gopls utilities
-const gopls = require('gopls.js');
-const lsp = require('lsp.js');
+import * as gopls from "./gopls";
+// import * as lsp from "./lsp";
 
 // Language server instance
-var gls = null;
+var gls: GoLanguageServer;
 
-exports.activate = () => {
+export function activate() {
     // tasks.CreateTasks();
     gls = new GoLanguageServer();
     gls.start().then(ext.plog('activate')).catch(ext.plog('activate warning'));
 };
 
-exports.deactivate = () => {
+export function deactivate() {
     if (gls !== null) {
         gls.deactivate();
-        gls = null;
+        // gls = null;
     }
 };
 
 class GoLanguageServer {
+    
+    private languageClient: any;
+    private lcHooksRegistered: boolean = false;
+    private lcCommandsRegistered: boolean = false;
+    
     constructor() {
         nova.commands.register(
             ext.ns('cmd.installGopls'),
@@ -53,10 +58,10 @@ class GoLanguageServer {
     }
 
     deactivate() {
-        this.stop().then(ext.plog('deactivate')).catch('deactivate fail');
+        this.stop().then(ext.plog('deactivate')).catch(ext.plog('deactivate fail'));
     }
 
-    start() {
+    start(): Promise<string> {
         return new Promise(async (resolve, reject) => {
             if (this.languageClient) {
                 return resolve('gopls is already running');
@@ -70,7 +75,7 @@ class GoLanguageServer {
 
             // Find gopls
             let vp = await gopls.Version();
-            if (vp.path === undefined) {
+            if (!vp.path) {
                 nova.workspace.showWarningMessage(
                     `Cannot locate gopls.\n\nMake sure it installed in $GOPATH/bin, somewhere in $PATH, or provide the full path in the ${nova.extension.name} extension config.`
                 );
@@ -79,13 +84,13 @@ class GoLanguageServer {
             console.info(`gopls version: ${JSON.stringify(vp)}`);
 
             // LanguageClient server options
-            var serverOptions = {
+            var serverOptions: ServerOptions = {
                 path: vp.path,
                 args: ['serve'],
             };
             if (nova.config.get(ext.ns('gopls-trace'), 'boolean')) {
                 console.log('gopls rpc tracing is enabled');
-                serverOptions.args = serverOptions.args.concat(['-rpc.trace']);
+                serverOptions.args = serverOptions.args?.concat(['-rpc.trace']);
             }
             console.log('server options:', JSON.stringify(serverOptions));
 
@@ -104,7 +109,7 @@ class GoLanguageServer {
 
             try {
                 client.start();
-                nova.subscriptions.add(client);
+                // nova.subscriptions.add(client);
                 this.languageClient = client;
             } catch (err) {
                 return reject(err);
@@ -131,10 +136,10 @@ class GoLanguageServer {
         });
     }
 
-    stop() {
+    stop(): Promise<string> {
         return new Promise((resolve) => {
             if (this.languageClient) {
-                this.languageClient.onDidStop((err) => {
+                this.languageClient.onDidStop((err: string) => {
                     if (err) {
                         // As of Nova 2.0, gopls does not cleanly shut down
                         // because Nova sends an empty parameters object to
@@ -153,13 +158,13 @@ class GoLanguageServer {
         });
     }
 
-    restart() {
+    async restart(): Promise<string> {
         return this.stop()
             .then(() => {
                 return this.start();
             })
-            .then(ext.plog('restart'))
-            .catch(ext.plog('restart fail'));
+            // .then(ext.plog('restart'))
+            // .catch(ext.plog('restart fail'));
     }
 
     // Register extension commands that depend on the language client
@@ -202,7 +207,7 @@ class GoLanguageServer {
             );
             nova.commands.register(
                 ext.ns('cmd.jumpBack'),
-                (editor) => commands.JumpBack(editor, this.languageClient),
+                () => commands.JumpBack(),
                 this
             );
             this.lcCommandsRegistered = true;
@@ -237,8 +242,8 @@ class GoLanguageServer {
                             console.log('organizing imports on save done');
                         }
                     }
-                }, this);
-            }, this);
+                });
+            });
             this.lcHooksRegistered = true;
             console.log('Registered language client hooks');
         } else {

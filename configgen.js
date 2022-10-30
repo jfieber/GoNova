@@ -6,7 +6,7 @@
 // all its configuration options.
 //
 
-var child_process = require('child_process');
+import * as child_process from 'child_process';
 
 // Base preferences are those unique to this Nova extension, plus a placeholder for
 // the gopls options to be injected after processing.
@@ -63,7 +63,7 @@ var novaPreferences = [
 // The main show: walk through the gopls preferences, convert them
 // to Nova preferences, then add them to the appropriate section
 // of of the Nova preferences structure.
-gopls = child_process.spawnSync('gopls', ['api-json'], { encoding: 'utf8' });
+let gopls = child_process.spawnSync('gopls', ['api-json'], { encoding: 'utf8' });
 JSON.parse(gopls.stdout).Options.User.forEach((opt) => {
     var novaOpt = goplsToNovaPref(opt);
     if (novaOpt !== null) {

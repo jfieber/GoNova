@@ -1,24 +1,40 @@
-const lsp = require('lsp.js');
-const gopls = require('gopls.js');
+import type * as lspTypes from "vscode-languageserver-protocol";
+import * as lsp from "./lsp";
+import * as gopls from "./gopls";
+
+type jumpLoc = {
+    uri: string
+    range: Range
+}
 
 class JumpStack {
+    private jumpStack: Array<jumpLoc>
+
     constructor() {
         this.jumpStack = [];
     }
 
     push() {
-        this.jumpStack.push({
-            uri: nova.workspace.activeTextEditor.document.uri,
-            range: nova.workspace.activeTextEditor.selectedRange,
-        });
+        const uri = nova.workspace.activeTextEditor?.document.uri
+        const range = nova.workspace.activeTextEditor?.selectedRange
+        if (uri && range) {
+            this.jumpStack.push({
+                uri: uri,
+                range: range,
+            });
+        }
     }
 
     pop() {
-        let p = this.jumpStack.pop();
+        const p = this.jumpStack.pop();
         if (p) {
+            const foo: jumpLoc = p;
             nova.workspace
-                .openFile(p.uri)
+                .openFile(foo.uri)
                 .then((targetEditor) => {
+                    if (!targetEditor) {
+                        throw "no target editor";
+                    }
                     targetEditor.selectedRange = p.range;
                     targetEditor.scrollToCursorPosition();
                 })
@@ -33,11 +49,11 @@ class JumpStack {
 
 var js = new JumpStack();
 
-exports.JumpBack = () => {
+export function JumpBack() {
     js.pop();
 };
 
-exports.InstallGopls = (workspace, gls) => {
+export function InstallGopls(workspace: Workspace, gls: any) {
     workspace.showInputPanel(
         'Specify gopls version to install',
         {
@@ -62,7 +78,7 @@ exports.InstallGopls = (workspace, gls) => {
     );
 };
 
-exports.OrganizeImports = async (editor, lclient) => {
+export async function OrganizeImports(editor: TextEditor, lclient: LanguageClient) {
     if (lclient) {
         var cmd = 'textDocument/codeAction';
         var cmdArgs = {
@@ -73,7 +89,7 @@ exports.OrganizeImports = async (editor, lclient) => {
             context: { diagnostics: [] },
         };
         const response = await lclient.sendRequest(cmd, cmdArgs);
-        if (response !== null && response !== undefined) {
+        if (Array.isArray(response)) {
             for (const action of response) {
                 if (action.kind === 'source.organizeImports') {
                     console.info(`Performing actions for ${action.kind}`);
@@ -88,7 +104,7 @@ exports.OrganizeImports = async (editor, lclient) => {
     }
 };
 
-exports.FormatFile = async (editor, lclient) => {
+export async function FormatFile(editor: TextEditor, lclient: LanguageClient) {
     if (lclient) {
         var cmd = 'textDocument/formatting';
         var cmdArgs = {
@@ -98,35 +114,35 @@ exports.FormatFile = async (editor, lclient) => {
             options: {},
         };
         const response = await lclient.sendRequest(cmd, cmdArgs);
-        if (response !== null && response !== undefined) {
+        if (Array.isArray(response)) {
             await lsp.ApplyTextEdits(editor, response);
         }
     }
 };
 
-exports.FindReferences = (editor, lclient) => {
+export function FindReferences(editor: TextEditor, lclient: LanguageClient) {
     findX(editor, lclient, 'textDocument/references', {
         includeDeclaration: true,
     });
 };
 
-exports.FindImplementations = (editor, lclient) => {
+export function FindImplementations(editor: TextEditor, lclient: LanguageClient) {
     findX(editor, lclient, 'textDocument/implementation');
 };
 
-exports.FindDefinition = (editor, lclient) => {
+export function FindDefinition(editor: TextEditor, lclient: LanguageClient) {
     findX(editor, lclient, 'textDocument/definition');
 };
 
-exports.FindTypeDefinition = (editor, lclient) => {
+export function FindTypeDefinition(editor: TextEditor, lclient: LanguageClient) {
     findX(editor, lclient, 'textDocument/typeDefinition');
 };
 
 // Run assorted jump-to-related-entity commands
-function findX(editor, lclient, command, params) {
+function findX(editor: TextEditor, lclient: LanguageClient, command: string, params?: object) {
     if (lclient) {
         var origin = lsp.RangeToLspRange(editor.document, editor.selectedRange);
-        if (origin === undefined || !origin.start) {
+        if (!origin || !origin.start) {
             nova.workspace.showWarningMessage(
                 "Couldn't figure out what you've selected."
             );
@@ -147,17 +163,19 @@ function findX(editor, lclient, command, params) {
         lclient
             .sendRequest(command, cmdArgs)
             .then((response) => {
-                multiJump(response);
+                if (Array.isArray(response)) {
+                    multiJump(response);
+                }
             })
             .catch((err) => {
-                console.error(`${cmd} error!:`, err);
+                console.error(`${command} error!:`, err);
             });
     }
 }
 
 // Jump to an LSP Location
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#location
-function jumpTo(lspLocation) {
+function jumpTo(lspLocation: lspTypes.Location) {
     if (lspLocation === undefined || lspLocation === null) {
         console.error('jumpTo(): no jump target specified!');
     }
@@ -165,6 +183,9 @@ function jumpTo(lspLocation) {
     nova.workspace
         .openFile(lspLocation.uri)
         .then((targetEditor) => {
+            if (!targetEditor) {
+                throw "no target editor"
+            }
             targetEditor.selectedRange = lsp.LspRangeToRange(
                 targetEditor.document,
                 lspLocation.range
@@ -176,9 +197,14 @@ function jumpTo(lspLocation) {
         });
 }
 
+type titleLocation = {
+    title: string
+    location: lspTypes.Location
+}
+
 // Jump to an LSP Location after presenting a list of Locations to the user.
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#location
-function multiJump(lspLocations) {
+function multiJump(lspLocations: Array<lspTypes.Location>) {
     if (!Array.isArray(lspLocations)) {
         console.error(`multiJump: input is not an array`);
         return;
@@ -191,13 +217,14 @@ function multiJump(lspLocations) {
     }
 
     // Otherwise fix up the UI label for the choice palette
-    let labeled = lspLocations.map((target) => {
-        target.title =
-            nova.workspace.relativizePath(target.uri.replace(`file://`, '')) +
+    let labeled = lspLocations.map((target): titleLocation => {
+        return {
+            location: target,
+            title: nova.workspace.relativizePath(target.uri.replace(`file://`, '')) +
             ` ${target.range.start.line + 1}:${
                 target.range.start.character + 1
-            }`;
-        return target;
+            }`
+        };
     });
 
     nova.workspace.showChoicePalette(
@@ -209,7 +236,7 @@ function multiJump(lspLocations) {
                     return r['title'] === selected;
                 });
                 if (target !== undefined) {
-                    jumpTo(target);
+                    jumpTo(target.location);
                 }
             }
         }

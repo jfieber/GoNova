@@ -11,7 +11,7 @@
     "repository": "https://github.com/jfieber/GoNova.novaextension",
     "bugs": "https://github.com/jfieber/GoNova.novaextension/issues",
 
-    "main": "main.js",
+    "main": "main.dist.js",
 
     "activationEvents": ["onLanguage:Go", "onWorkspaceContains:*.go"],
 
@@ -20,7 +20,7 @@
         "filesystem": "readwrite"
     },
 
-    "config": "gopls.json",
+    "config": "config.json",
 
     "commands": {
         "extensions": [

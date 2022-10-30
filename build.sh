@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
 
-./genopts | tee GoNova.novaextension/gopls.json
+fail() {
+	echo "error: $*"
+	exit 1
+}
 
-git submodule update --init
+# Assemble the script code
+npx rollup -c rollup.config.main.js || fail "Script compile failed"
 
-cd src/tree-sitter-go || exit 1
+# Update the gopls option configuration
+node configgen.js | tee GoNova.novaextension/config.json || fail "gopls option configuration failed"
+
+# Build the tree-sitter syntax
+git submodule update --init || fail "submodule update failure"
+cd src/Syntaxes/tree-sitter-go
 cp ../Makefile .
-
-npx tree-sitter generate || exit 3
-
 nova=$(mdfind kMDItemCFBundleIdentifier = com.panic.Nova)
-test -d "$nova" || exit 4
+test -d "$nova" || fail "Could not locate Nova.app"
+../compile_parser.sh "$PWD" $nova || fail "Parser compile failed"
+mv libtree-sitter-go*.dylib ../../../GoNova.novaextension/Syntaxes/
 
-../compile_parser.sh "$PWD" $nova || exit 5
-
-mv libtree-sitter-go*.dylib ../../GoNova.novaextension/Syntaxes/
-
-exit 0
