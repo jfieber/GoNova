@@ -16,15 +16,20 @@ export type ExecStatus = {
     status: number;
     stdout: string[];
     stderr: string[];
-}
+};
 
 export type ExecOptions = {
     args?: string[];
     env?: { [key: string]: string };
     cwd?: string;
-    stdio?: ['pipe' | 'ignore', 'pipe' | 'ignore', 'pipe' | 'ignore'] | 'pipe' | 'ignore' | 'jsonrpc' | number;
+    stdio?:
+        | ['pipe' | 'ignore', 'pipe' | 'ignore', 'pipe' | 'ignore']
+        | 'pipe'
+        | 'ignore'
+        | 'jsonrpc'
+        | number;
     shell?: true | string;
-}
+};
 
 //
 // Execute a command, with options as per the Nova Process API
@@ -36,7 +41,10 @@ export type ExecOptions = {
 //   stderr: string[]
 // }
 //
-export function exec(command: string, options: ExecOptions): Promise<ExecStatus> {
+export function exec(
+    command: string,
+    options: ExecOptions
+): Promise<ExecStatus> {
     return new Promise((resolve, reject) => {
         const retVal: ExecStatus = {
             status: 0,

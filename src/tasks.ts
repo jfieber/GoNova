@@ -1,4 +1,4 @@
-import * as gopls from "./gopls";
+import * as gopls from './gopls';
 
 export function CreateTasks() {
     let go = gopls.ToolPath('go');
@@ -34,4 +34,3 @@ export function CreateTasks() {
         },
     });
 }
-

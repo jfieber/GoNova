@@ -1,22 +1,22 @@
-import type * as lspTypes from "vscode-languageserver-protocol";
-import * as lsp from "./lsp";
-import * as gopls from "./gopls";
+import type * as lspTypes from 'vscode-languageserver-protocol';
+import * as lsp from './lsp';
+import * as gopls from './gopls';
 
 type jumpLoc = {
-    uri: string
-    range: Range
-}
+    uri: string;
+    range: Range;
+};
 
 class JumpStack {
-    private jumpStack: Array<jumpLoc>
+    private jumpStack: Array<jumpLoc>;
 
     constructor() {
         this.jumpStack = [];
     }
 
     push() {
-        const uri = nova.workspace.activeTextEditor?.document.uri
-        const range = nova.workspace.activeTextEditor?.selectedRange
+        const uri = nova.workspace.activeTextEditor?.document.uri;
+        const range = nova.workspace.activeTextEditor?.selectedRange;
         if (uri && range) {
             this.jumpStack.push({
                 uri: uri,
@@ -33,7 +33,7 @@ class JumpStack {
                 .openFile(foo.uri)
                 .then((targetEditor) => {
                     if (!targetEditor) {
-                        throw "no target editor";
+                        throw 'no target editor';
                     }
                     targetEditor.selectedRange = p.range;
                     targetEditor.scrollToCursorPosition();
@@ -51,7 +51,7 @@ var js = new JumpStack();
 
 export function JumpBack() {
     js.pop();
-};
+}
 
 export function InstallGopls(workspace: Workspace, gls: any) {
     workspace.showInputPanel(
@@ -76,9 +76,12 @@ export function InstallGopls(workspace: Workspace, gls: any) {
             }
         }
     );
-};
+}
 
-export async function OrganizeImports(editor: TextEditor, lclient: LanguageClient) {
+export async function OrganizeImports(
+    editor: TextEditor,
+    lclient: LanguageClient
+) {
     if (lclient) {
         var cmd = 'textDocument/codeAction';
         var cmdArgs = {
@@ -102,7 +105,7 @@ export async function OrganizeImports(editor: TextEditor, lclient: LanguageClien
             }
         }
     }
-};
+}
 
 export async function FormatFile(editor: TextEditor, lclient: LanguageClient) {
     if (lclient) {
@@ -118,28 +121,39 @@ export async function FormatFile(editor: TextEditor, lclient: LanguageClient) {
             await lsp.ApplyTextEdits(editor, response);
         }
     }
-};
+}
 
 export function FindReferences(editor: TextEditor, lclient: LanguageClient) {
     findX(editor, lclient, 'textDocument/references', {
         includeDeclaration: true,
     });
-};
+}
 
-export function FindImplementations(editor: TextEditor, lclient: LanguageClient) {
+export function FindImplementations(
+    editor: TextEditor,
+    lclient: LanguageClient
+) {
     findX(editor, lclient, 'textDocument/implementation');
-};
+}
 
 export function FindDefinition(editor: TextEditor, lclient: LanguageClient) {
     findX(editor, lclient, 'textDocument/definition');
-};
+}
 
-export function FindTypeDefinition(editor: TextEditor, lclient: LanguageClient) {
+export function FindTypeDefinition(
+    editor: TextEditor,
+    lclient: LanguageClient
+) {
     findX(editor, lclient, 'textDocument/typeDefinition');
-};
+}
 
 // Run assorted jump-to-related-entity commands
-function findX(editor: TextEditor, lclient: LanguageClient, command: string, params?: object) {
+function findX(
+    editor: TextEditor,
+    lclient: LanguageClient,
+    command: string,
+    params?: object
+) {
     if (lclient) {
         var origin = lsp.RangeToLspRange(editor.document, editor.selectedRange);
         if (!origin || !origin.start) {
@@ -184,7 +198,7 @@ function jumpTo(lspLocation: lspTypes.Location) {
         .openFile(lspLocation.uri)
         .then((targetEditor) => {
             if (!targetEditor) {
-                throw "no target editor"
+                throw 'no target editor';
             }
             targetEditor.selectedRange = lsp.LspRangeToRange(
                 targetEditor.document,
@@ -198,9 +212,9 @@ function jumpTo(lspLocation: lspTypes.Location) {
 }
 
 type titleLocation = {
-    title: string
-    location: lspTypes.Location
-}
+    title: string;
+    location: lspTypes.Location;
+};
 
 // Jump to an LSP Location after presenting a list of Locations to the user.
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#location
@@ -220,10 +234,13 @@ function multiJump(lspLocations: Array<lspTypes.Location>) {
     let labeled = lspLocations.map((target): titleLocation => {
         return {
             location: target,
-            title: nova.workspace.relativizePath(target.uri.replace(`file://`, '')) +
-            ` ${target.range.start.line + 1}:${
-                target.range.start.character + 1
-            }`
+            title:
+                nova.workspace.relativizePath(
+                    target.uri.replace(`file://`, '')
+                ) +
+                ` ${target.range.start.line + 1}:${
+                    target.range.start.character + 1
+                }`,
         };
     });
 

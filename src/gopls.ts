@@ -1,12 +1,11 @@
 // Routines for working with gopls.
 // const ext = require('ext.js');
-import * as ext from "./ext";
+import * as ext from './ext';
 
 type goplsVersion = {
-    path: string | null
-    version: string | null
-}
-
+    path: string | null;
+    version: string | null;
+};
 
 // Obtain the gopls path and version.
 export async function Version(): Promise<goplsVersion> {
@@ -15,14 +14,14 @@ export async function Version(): Promise<goplsVersion> {
         version: null,
     };
     if (ver.path !== null) {
-        ver.path = ToolPath(ver.path)
+        ver.path = ToolPath(ver.path);
     }
     if (ver.path !== null) {
         const out = await ext.exec(ver.path, { args: ['version'] });
         if (out.status !== 0) {
             console.error(`gopls return exit code ${out.status}`);
         } else {
-            const x = out.stdout[0].match(/v\d+\.\d+.\d+/)
+            const x = out.stdout[0].match(/v\d+\.\d+.\d+/);
             if (null != x) {
                 ver.version = x[0];
             }
@@ -82,13 +81,13 @@ export function ToolPath(tool: string): string | null {
 // Obtain the go version.
 export async function GoVersion(): Promise<string | null> {
     const result = await Go({
-        args: ['version']
+        args: ['version'],
     });
     let val = result.stdout.join('\n'.trim());
     if (val === '') {
         return null;
     } else {
-        const m = val.match(/go\d+\.\d+.\d+/)
+        const m = val.match(/go\d+\.\d+.\d+/);
         if (!m) {
             return null;
         }
@@ -99,7 +98,7 @@ export async function GoVersion(): Promise<string | null> {
 export function Go(options: ext.ExecOptions): Promise<ext.ExecStatus> {
     const goPath = ToolPath('go');
     if (null === goPath) {
-        throw "could not locate go"
+        throw 'could not locate go';
     }
     return ext.exec(goPath, options);
 }

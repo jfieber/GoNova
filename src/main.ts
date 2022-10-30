@@ -1,10 +1,10 @@
 // Extension commands
-import * as commands from "./commands";
+import * as commands from './commands';
 // import * as tasks from "./tasks";
-import * as ext from "./ext";
+import * as ext from './ext';
 
 // gopls utilities
-import * as gopls from "./gopls";
+import * as gopls from './gopls';
 // import * as lsp from "./lsp";
 
 // Language server instance
@@ -14,21 +14,20 @@ export function activate() {
     // tasks.CreateTasks();
     gls = new GoLanguageServer();
     gls.start().then(ext.plog('activate')).catch(ext.plog('activate warning'));
-};
+}
 
 export function deactivate() {
     if (gls !== null) {
         gls.deactivate();
         // gls = null;
     }
-};
+}
 
 class GoLanguageServer {
-    
     private languageClient: any;
     private lcHooksRegistered: boolean = false;
     private lcCommandsRegistered: boolean = false;
-    
+
     constructor() {
         nova.commands.register(
             ext.ns('cmd.installGopls'),
@@ -58,7 +57,9 @@ class GoLanguageServer {
     }
 
     deactivate() {
-        this.stop().then(ext.plog('deactivate')).catch(ext.plog('deactivate fail'));
+        this.stop()
+            .then(ext.plog('deactivate'))
+            .catch(ext.plog('deactivate fail'));
     }
 
     start(): Promise<string> {
@@ -159,12 +160,11 @@ class GoLanguageServer {
     }
 
     async restart(): Promise<string> {
-        return this.stop()
-            .then(() => {
-                return this.start();
-            })
-            // .then(ext.plog('restart'))
-            // .catch(ext.plog('restart fail'));
+        return this.stop().then(() => {
+            return this.start();
+        });
+        // .then(ext.plog('restart'))
+        // .catch(ext.plog('restart fail'));
     }
 
     // Register extension commands that depend on the language client

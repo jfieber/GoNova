@@ -10,6 +10,7 @@
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@types/nova-editor-node": "^4.1.7",
     "nova-extension-utils": "^1.4.0",
+    "prettier": "^2.7.1",
     "rollup": "^3.2.3",
     "rollup-plugin-typescript2": "^0.34.1",
     "tree-sitter-cli": "^0.20.7",
@@ -29,5 +30,6 @@
   "bugs": {
     "url": "https://github.com/jfieber/GoNova.novaextension/issues"
   },
-  "homepage": "https://github.com/jfieber/GoNova.novaextension#readme"
+  "homepage": "https://github.com/jfieber/GoNova.novaextension#readme",
+  "dependencies": {}
 }

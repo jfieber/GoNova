@@ -19,8 +19,7 @@ var novaPreferences = [
             {
                 key: 'org.ursamaris.nova.go.gopls-path',
                 title: 'Language Server Command',
-                link:
-                    'https://github.com/golang/tools/blob/master/gopls/README.md',
+                link: 'https://github.com/golang/tools/blob/master/gopls/README.md',
                 description:
                     'The command name to start the gopls language server. Use an absolute path here if gopls is not in your search path.',
                 type: 'path',
@@ -53,8 +52,7 @@ var novaPreferences = [
         key: 'gopls',
         title: 'Go Language Server',
         description: 'Options which apply to the gopls language server.',
-        link:
-            'https://github.com/golang/tools/blob/master/gopls/doc/settings.md',
+        link: 'https://github.com/golang/tools/blob/master/gopls/doc/settings.md',
         type: 'section',
         children: [],
     },
@@ -63,7 +61,9 @@ var novaPreferences = [
 // The main show: walk through the gopls preferences, convert them
 // to Nova preferences, then add them to the appropriate section
 // of of the Nova preferences structure.
-let gopls = child_process.spawnSync('gopls', ['api-json'], { encoding: 'utf8' });
+let gopls = child_process.spawnSync('gopls', ['api-json'], {
+    encoding: 'utf8',
+});
 JSON.parse(gopls.stdout).Options.User.forEach((opt) => {
     var novaOpt = goplsToNovaPref(opt);
     if (novaOpt !== null) {

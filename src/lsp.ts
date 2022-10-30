@@ -1,4 +1,4 @@
-import type * as lspTypes from "vscode-languageserver-protocol";
+import type * as lspTypes from 'vscode-languageserver-protocol';
 
 // Turn a Nova start-end range to an LSP row-column range.
 // From https://github.com/apexskier/nova-typescript
@@ -23,7 +23,7 @@ export function RangeToLspRange(document: TextDocument, range: Range) {
         chars += lineLength;
     }
     return null;
-};
+}
 
 // Turn an LSP row-column range to a Nova start-end range.
 // From https://github.com/apexskier/nova-typescript
@@ -54,7 +54,7 @@ export function LspRangeToRange(document: TextDocument, range: lspTypes.Range) {
     }
 
     return new Range(rangeStart, rangeEnd);
-};
+}
 
 // Apply a TextDocumentEdit
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentEdit
@@ -63,7 +63,7 @@ export async function ApplyTextDocumentEdit(tde: lspTypes.TextDocumentEdit) {
         try {
             const editor = await nova.workspace.openFile(tde.textDocument.uri);
             if (!editor) {
-                throw "no editor"
+                throw 'no editor';
             }
             await ApplyTextEdits(editor, tde.edits);
         } catch (err) {
@@ -72,15 +72,18 @@ export async function ApplyTextDocumentEdit(tde: lspTypes.TextDocumentEdit) {
     } else {
         console.info('no edits to apply, it seems');
     }
-};
+}
 
 // Apply a TextEdit[]
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textEdit
-export async function ApplyTextEdits(editor: TextEditor, edits: Array<lspTypes.TextEdit>) {
+export async function ApplyTextEdits(
+    editor: TextEditor,
+    edits: Array<lspTypes.TextEdit>
+) {
     await editor.edit((tee) => {
         for (const e of edits.reverse()) {
             const r = LspRangeToRange(editor.document, e.range);
             tee.replace(r, e.newText);
         }
     });
-};
+}
