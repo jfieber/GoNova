@@ -48,12 +48,6 @@ class GoLanguageServer {
                     .catch(ext.plog('gopls restart failed after path change'));
             }
         });
-
-        nova.config.onDidChange(ext.ns('gopls-trace'), (current) => {
-            this.restart()
-                .then(ext.plog(`gopls-trace set to ${current}`))
-                .catch(ext.plog(`gopls-trace restart fail`));
-        });
     }
 
     deactivate() {
@@ -89,10 +83,6 @@ class GoLanguageServer {
                 path: vp.path,
                 args: ['serve'],
             };
-            if (nova.config.get(ext.ns('gopls-trace'), 'boolean')) {
-                console.log('gopls rpc tracing is enabled');
-                serverOptions.args = serverOptions.args?.concat(['-rpc.trace']);
-            }
             console.log('server options:', JSON.stringify(serverOptions));
 
             // LanguageClient client options

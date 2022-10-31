@@ -38,14 +38,6 @@ var novaPreferences = [
                 type: 'boolean',
                 default: false,
             },
-            {
-                key: 'org.ursamaris.nova.go.gopls-trace',
-                title: 'Enable RPC trace',
-                description:
-                    'Turns on gopls RPC tracing in the extension console.',
-                type: 'boolean',
-                default: false,
-            },
         ],
     },
     {
