@@ -8,6 +8,8 @@
 
 import * as child_process from 'child_process';
 
+const goplsPrefKey = 'org.ursamaris.nova.go.gopls';
+
 // Base preferences are those unique to this Nova extension, plus a placeholder for
 // the gopls options to be injected after processing.
 var novaPreferences = [
@@ -41,7 +43,7 @@ var novaPreferences = [
         ],
     },
     {
-        key: 'gopls',
+        key: goplsPrefKey,
         title: 'Go Language Server',
         description: 'Options which apply to the gopls language server.',
         link: 'https://github.com/golang/tools/blob/master/gopls/doc/settings.md',
@@ -59,26 +61,27 @@ let gopls = child_process.spawnSync('gopls', ['api-json'], {
 JSON.parse(gopls.stdout).Options.User.forEach((opt) => {
     var novaOpt = goplsToNovaPref(opt);
     if (novaOpt !== null) {
-        var s = findSection(novaOpt, novaPreferences);
+        var s = findSection(opt, novaPreferences);
         s.push(novaOpt);
     }
 });
 console.log(JSON.stringify(novaPreferences, null, 2));
 
-// Locate a Nova preferences section based on the dotted option key path.
+// Locate a Nova preferences section based on the dotted option hierarchy
 // of the preference to insert. The start argument is the top of
 // the Nova structure structure.
-function findSection(novaPref, start) {
+function findSection(goplsPref, start) {
     var r = start;
-    var path = novaPref.key.split('.');
-    path.pop();
+    var path = [goplsPrefKey].concat(goplsPref.Hierarchy.split('.'));
     path.forEach((ps) => {
+        var key = `${goplsPrefKey}.${ps}`;
+        var key = ps;
         var section = r.find((i) => {
-            return i.type === 'section' && i.key === ps;
+            return i.type === 'section' && i.key === key;
         });
         if (section === undefined) {
             section = {
-                key: ps,
+                key: key,
                 title: ps,
                 type: 'section',
                 children: [],
@@ -97,7 +100,7 @@ function findSection(novaPref, start) {
 function goplsToNovaPref(goplsPref) {
     if (goplsPref.Status === '' || goplsPref.Status === 'advanced') {
         var novaPref = {
-            key: `gopls.${goplsPref.Hierarchy}.${goplsPref.Name}`,
+            key: `gopls.${goplsPref.Name}`,
             title: goplsPref.Name,
             description: goplsPref.Doc,
         };
