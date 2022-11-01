@@ -59,8 +59,9 @@
 </surrounding-pairs>
 
 <tree-sitter language="go">
-	<highlights />
 	<folds />
+	<highlights />
+	<symbols />
 </tree-sitter>
 
 </syntax>

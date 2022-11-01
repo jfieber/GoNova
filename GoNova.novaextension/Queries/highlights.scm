@@ -17,8 +17,16 @@
 
 ; Identifiers
 
+(const_spec
+  name: (identifier) @identifier.constant)
+(var_spec
+  name: (identifier) @identifier.variable)
+(short_var_declaration
+  left: (expression_list (identifier) @identifier.variable))
+
 (type_identifier) @identifier.type
 (field_identifier) @identifier.property
+(package_identifier) @identifier
 (identifier) @identifier
 
 ; Operators

@@ -13,59 +13,58 @@
     "}" @end
   )
 )
-(#set! role function)
-)
+(#set! role function))
 
 (function_declaration
-  (identifier) @structure.anchor
+  (identifier)
   (parameter_list
     "(" @start
-    ("," @structure.separator (_))*
+    ("," (_))*
     ")" @end
   )
 )
 
-(method_declaration
+((method_declaration
   "func"
   body: (block
     "{" @start
     "}" @end
   )
 )
+(#set! role function))
 
 (call_expression
-  function: (_) @structure.anchor
+  function: (_)
   (argument_list
     "(" @start
-    ("," @structure.separator (_))*
-    ","? @structure.separator
+    ("," (_))*
+    ","?
     ")" @end
   )
 )
 
 (composite_literal
-  type: (_) @structure.anchor
+  type: (_)
   body: (literal_value
     "{" @start
-    ("," @structure.separator (_)?)*
+    ("," (_)?)*
     "}" @end
   )
 )
 
 (literal_value
  "{" @start
- ("," @structure.separator (_)?)*
+ ("," (_)?)*
  "}" @end
 )
 
-((if_statement
+(if_statement
   ["if" "else"]
   (block
     "{" @start
     "}" @end
   )
 )
-(#set! role block))
 
 (if_statement
   "else"
@@ -79,66 +78,70 @@
 )
 
 (expression_switch_statement
-  "switch" @subtree
-  ; "{" @start
-  ; "}" @end
+  "switch"
+  "{" @start
+  "}" @end
 )
 
-(expression_switch_statement
+((expression_switch_statement
   (expression_case
-    "case" @structure.anchor
+    "case"
     ":" @start
   )
   .
   [
-    (expression_case "case" @structure.limit)
-    (default_case "default" @structure.limit)
+    (expression_case "case" @end)
+    (default_case "default" @end)
   ]
 )
+(#set! scope.byLine))
 
- (expression_switch_statement
-   (default_case "default" @structure.anchor)
-   "}" @structure.limit
- )
+((expression_switch_statement
+ (default_case "default" @start)
+ "}" @end
+)
+(#set! scope.byLine))
+
 
 (type_switch_statement
-  "switch" @subtree
-  ; "{" @start
-  ; "}" @end
+  "switch"
+  "{" @start
+  "}" @end
 )
 
-(type_switch_statement
+((type_switch_statement
   (type_case
-    "case" @structure.anchor
+    "case"
     ":" @start
   )
   .
   [
-    (type_case "case" @structure.limit)
-    (default_case "default" @structure.limit)
+    (type_case "case" @end)
+    (default_case "default" @end)
   ]
 )
+(#set! scope.byLine))
 
 (select_statement
-  "select" @subtree
-  ; "{" @start
-  ; "}" @end
+  "select"
+  "{" @start
+  "}" @end
 )
 
 (func_literal
   "func"
   (block
-    ; "{" @start
-    ; "}" @end
-  ) @subtree
+    "{" @start
+    "}" @end
+  )
 )
 
 (for_statement
   "for"
   (block
-    ; "{" @start
-    ; "}" @end
-  ) @subtree
+    "{" @start
+    "}" @end
+  )
 )
 
 (type_declaration
@@ -146,9 +149,9 @@
   (type_spec
     (struct_type
       (field_declaration_list
-        ; "{" @start
-        ; "}" @end
-      ) @subtree
+        "{" @start
+        "}" @end
+      )
     )
   )
 )
@@ -156,23 +159,23 @@
 (struct_type
   "struct"
   (field_declaration_list
-    ; "{" @start
-    ; "}" @end
-  ) @subtree
+    "{" @start
+    "}" @end
+  )
 )
 
 (type_declaration
   "type"
   (type_spec
     (interface_type
-      ; "{" @start
-      ; "}" @end
-    ) @subtree
+      "{" @start
+      "}" @end
+    )
   )
 )
 
 (interface_type
-  "interface" @subtree
-  ; "{" @start
-  ; "}" @end
+  "interface"
+  "{" @start
+  "}" @end
 )
