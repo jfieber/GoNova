@@ -59,9 +59,9 @@
 </surrounding-pairs>
 
 <tree-sitter language="go">
-	<folds />
-	<highlights />
-	<symbols />
+	<folds path="go-folds.scm" />
+	<highlights path="go-highlights.scm" />
+	<symbols path="go-symbols.scm" />
 </tree-sitter>
 
 </syntax>

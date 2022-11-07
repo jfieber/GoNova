@@ -1,3 +1,6 @@
 [submodule "src/Syntaxes/tree-sitter-go"]
 	path = src/Syntaxes/tree-sitter-go
 	url = https://github.com/tree-sitter/tree-sitter-go.git
+[submodule "src/Syntaxes/tree-sitter-go-mod"]
+	path = src/Syntaxes/tree-sitter-go-mod
+	url = https://github.com/camdencheek/tree-sitter-go-mod.git
