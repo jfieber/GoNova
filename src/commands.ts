@@ -1,6 +1,6 @@
 import type * as lspTypes from 'vscode-languageserver-protocol';
-import * as lsp from './lsp';
 import * as gopls from './gopls';
+import * as lsp from './lsp';
 
 type jumpLoc = {
     uri: string;
@@ -53,6 +53,15 @@ export function JumpBack() {
     js.pop();
 }
 
+// Check if a language client is available and log if not
+function lcCheck(lclient: LanguageClient): boolean {
+    if (!lclient) {
+        console.log('language server is not running');
+        return false;
+    }
+    return true;
+}
+
 export function InstallGopls(workspace: Workspace, gls: any) {
     workspace.showInputPanel(
         'Specify gopls version to install',
@@ -82,7 +91,7 @@ export async function OrganizeImports(
     editor: TextEditor,
     lclient: LanguageClient
 ) {
-    if (lclient) {
+    if (lcCheck(lclient)) {
         var cmd = 'textDocument/codeAction';
         var cmdArgs = {
             textDocument: {
@@ -108,7 +117,7 @@ export async function OrganizeImports(
 }
 
 export async function FormatFile(editor: TextEditor, lclient: LanguageClient) {
-    if (lclient) {
+    if (lcCheck(lclient)) {
         var cmd = 'textDocument/formatting';
         var cmdArgs = {
             textDocument: {
@@ -154,7 +163,7 @@ function findX(
     command: string,
     params?: object
 ) {
-    if (lclient) {
+    if (lcCheck(lclient)) {
         var origin = lsp.RangeToLspRange(editor.document, editor.selectedRange);
         if (!origin || !origin.start) {
             nova.workspace.showWarningMessage(

@@ -25,12 +25,20 @@
     "commands": {
         "extensions": [
             {
-                "title": "Restart Go Language Server",
-                "command": "org.ursamaris.nova.go.cmd.restartGopls"
+                "title": "Install/Update Go Language Server…",
+                "command": "org.ursamaris.nova.go.cmd.goplsInstall"
             },
             {
-                "title": "Install/Update Go Language Server…",
-                "command": "org.ursamaris.nova.go.cmd.installGopls"
+                "title": "Start Server",
+                "command": "org.ursamaris.nova.go.cmd.goplsStart"
+            },
+            {
+                "title": "Stop Server",
+                "command": "org.ursamaris.nova.go.cmd.goplsStop"
+            },
+            {
+                "title": "Restart Server",
+                "command": "org.ursamaris.nova.go.cmd.goplsRestart"
             }
         ],
         "editor": [
