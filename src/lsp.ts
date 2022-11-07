@@ -1,6 +1,11 @@
+import type * as lspTypes from 'vscode-languageserver-protocol';
+
 // Turn a Nova start-end range to an LSP row-column range.
 // From https://github.com/apexskier/nova-typescript
-exports.RangeToLspRange = (document, range) => {
+export function RangeToLspRange(
+    document: TextDocument,
+    range: Range
+): lspTypes.Range | null {
     const fullContents = document.getTextInRange(new Range(0, document.length));
     let chars = 0;
     let startLspRange;
@@ -21,11 +26,14 @@ exports.RangeToLspRange = (document, range) => {
         chars += lineLength;
     }
     return null;
-};
+}
 
 // Turn an LSP row-column range to a Nova start-end range.
 // From https://github.com/apexskier/nova-typescript
-exports.LspRangeToRange = (document, range) => {
+export function LspRangeToRange(
+    document: TextDocument,
+    range: lspTypes.Range
+): Range {
     const lines = document
         .getTextInRange(new Range(0, document.length))
         .split(document.eol);
@@ -52,30 +60,36 @@ exports.LspRangeToRange = (document, range) => {
     }
 
     return new Range(rangeStart, rangeEnd);
-};
+}
 
 // Apply a TextDocumentEdit
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentEdit
-exports.ApplyTextDocumentEdit = async (tde) => {
+export async function ApplyTextDocumentEdit(tde: lspTypes.TextDocumentEdit) {
     if (tde && tde.textDocument && tde.edits) {
         try {
-            editor = await nova.workspace.openFile(tde.textDocument.uri);
-            await exports.ApplyTextEdits(editor, tde.edits);
+            const editor = await nova.workspace.openFile(tde.textDocument.uri);
+            if (!editor) {
+                throw 'no editor';
+            }
+            await ApplyTextEdits(editor, tde.edits);
         } catch (err) {
             console.error(`error opening file ${tde.textDocument.uri}: ${err}`);
         }
     } else {
         console.info('no edits to apply, it seems');
     }
-};
+}
 
 // Apply a TextEdit[]
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textEdit
-exports.ApplyTextEdits = async (editor, edits) => {
+export async function ApplyTextEdits(
+    editor: TextEditor,
+    edits: Array<lspTypes.TextEdit>
+) {
     await editor.edit((tee) => {
         for (const e of edits.reverse()) {
-            const r = exports.LspRangeToRange(editor.document, e.range);
+            const r = LspRangeToRange(editor.document, e.range);
             tee.replace(r, e.newText);
         }
     });
-};
+}

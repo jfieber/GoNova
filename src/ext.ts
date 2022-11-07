@@ -1,16 +1,35 @@
 // Grab-bag of extension utilities
 
 // Append an extension config/command name to the extension prefix
-function ns(name) {
+export function ns(name: string): string {
     return [nova.extension.identifier, name].join('.');
 }
 
 // Promise Logger
-function plog(prefix) {
-    return (msg) => {
+export function plog(prefix: string) {
+    return (msg: string) => {
         console.info(`${prefix}: ${msg}`);
     };
 }
+
+export type ExecStatus = {
+    status: number;
+    stdout: string[];
+    stderr: string[];
+};
+
+export type ExecOptions = {
+    args?: string[];
+    env?: { [key: string]: string };
+    cwd?: string;
+    stdio?:
+        | ['pipe' | 'ignore', 'pipe' | 'ignore', 'pipe' | 'ignore']
+        | 'pipe'
+        | 'ignore'
+        | 'jsonrpc'
+        | number;
+    shell?: true | string;
+};
 
 //
 // Execute a command, with options as per the Nova Process API
@@ -22,21 +41,24 @@ function plog(prefix) {
 //   stderr: string[]
 // }
 //
-function exec(command, options) {
+export function exec(
+    command: string,
+    options: ExecOptions
+): Promise<ExecStatus> {
     return new Promise((resolve, reject) => {
-        const retVal = {
+        const retVal: ExecStatus = {
             status: 0,
             stdout: [],
             stderr: [],
         };
         const cmd = new Process(command, options || {});
-        cmd.onStdout((l) => {
+        cmd.onStdout((l: string) => {
             retVal.stdout.push(l.trim());
         });
-        cmd.onStderr((l) => {
+        cmd.onStderr((l: string) => {
             retVal.stderr.push(l.trim());
         });
-        cmd.onDidExit((status) => {
+        cmd.onDidExit((status: number) => {
             retVal.status = status;
             if (status === 0) {
                 resolve(retVal);
@@ -46,15 +68,10 @@ function exec(command, options) {
         });
         try {
             cmd.start();
-        } catch (e) {
+        } catch (e: any) {
             retVal.status = 128;
             retVal.stderr = [e.message];
             reject(retVal);
         }
     });
 }
-
-// Publish
-exports.ns = ns;
-exports.plog = plog;
-exports.exec = exec;

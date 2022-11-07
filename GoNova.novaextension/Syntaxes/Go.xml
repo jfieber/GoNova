@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<syntax name="go">
+<meta>
+	<name>Go</name>
+	<type>compiled</type>
+	<preferred-file-extension>go</preferred-file-extension>
+	<default-extension>go</default-extension>
+</meta>
+
+<detectors>
+	<extension priority="1.0">go</extension>
+</detectors>
+
+<indentation>
+	<increase>
+		<expression>(\{[^}\"']*$)|(\[[^\]\"']*$)|(\([^)\"']*$)</expression>
+	</increase>
+	<decrease>
+		<expression>^\s*(\s*\/\*.*\*\/\s*)*[\}\]\)\\]</expression>
+	</decrease>
+</indentation>
+
+<comments>
+	<single>
+		<expression>//</expression>
+	</single>
+	<multiline>
+		<starts-with>
+			<expression>/*</expression>
+		</starts-with>
+		<ends-with>
+			<expression>*/</expression>
+		</ends-with>
+	</multiline>
+</comments>
+
+<brackets>
+	<pair open="{" close="}" />
+	<pair open="[" close="]" />
+	<pair open="(" close=")" />
+</brackets>
+
+<autoclosing-pairs>
+	<pair open="{" close="}" skip="string,comment" />
+	<pair open="[" close="]" skip="string,comment" />
+	<pair open="(" close=")" skip="string,comment" />
+	<pair open="&apos;" close="&apos;" skip="string,comment" />
+	<pair open="&quot;" close="&quot;" skip="string" />
+	<pair open="`" close="`" skip="string,comment" />
+</autoclosing-pairs>
+
+<surrounding-pairs>
+	<pair open="{" close="}" />
+	<pair open="[" close="]" />
+	<pair open="(" close=")" />
+	<pair open="&apos;" close="&apos;" />
+	<pair open="&quot;" close="&quot;" />
+	<pair open="`" close="`" />
+</surrounding-pairs>
+
+<tree-sitter language="go">
+	<folds path="go-folds.scm" />
+	<highlights path="go-highlights.scm" />
+	<symbols path="go-symbols.scm" />
+</tree-sitter>
+
+</syntax>

@@ -6,7 +6,9 @@
 // all its configuration options.
 //
 
-var child_process = require('child_process');
+import * as child_process from 'child_process';
+
+const goplsPrefKey = 'org.ursamaris.nova.go.gopls';
 
 // Base preferences are those unique to this Nova extension, plus a placeholder for
 // the gopls options to be injected after processing.
@@ -19,8 +21,7 @@ var novaPreferences = [
             {
                 key: 'org.ursamaris.nova.go.gopls-path',
                 title: 'Language Server Command',
-                link:
-                    'https://github.com/golang/tools/blob/master/gopls/README.md',
+                link: 'https://github.com/golang/tools/blob/master/gopls/README.md',
                 description:
                     'The command name to start the gopls language server. Use an absolute path here if gopls is not in your search path.',
                 type: 'path',
@@ -39,22 +40,13 @@ var novaPreferences = [
                 type: 'boolean',
                 default: false,
             },
-            {
-                key: 'org.ursamaris.nova.go.gopls-trace',
-                title: 'Enable RPC trace',
-                description:
-                    'Turns on gopls RPC tracing in the extension console.',
-                type: 'boolean',
-                default: false,
-            },
         ],
     },
     {
-        key: 'gopls',
+        key: goplsPrefKey,
         title: 'Go Language Server',
         description: 'Options which apply to the gopls language server.',
-        link:
-            'https://github.com/golang/tools/blob/master/gopls/doc/settings.md',
+        link: 'https://github.com/golang/tools/blob/master/gopls/doc/settings.md',
         type: 'section',
         children: [],
     },
@@ -63,30 +55,33 @@ var novaPreferences = [
 // The main show: walk through the gopls preferences, convert them
 // to Nova preferences, then add them to the appropriate section
 // of of the Nova preferences structure.
-gopls = child_process.spawnSync('gopls', ['api-json'], { encoding: 'utf8' });
+let gopls = child_process.spawnSync('gopls', ['api-json'], {
+    encoding: 'utf8',
+});
 JSON.parse(gopls.stdout).Options.User.forEach((opt) => {
     var novaOpt = goplsToNovaPref(opt);
     if (novaOpt !== null) {
-        var s = findSection(novaOpt, novaPreferences);
+        var s = findSection(opt, novaPreferences);
         s.push(novaOpt);
     }
 });
 console.log(JSON.stringify(novaPreferences, null, 2));
 
-// Locate a Nova preferences section based on the dotted option key path.
+// Locate a Nova preferences section based on the dotted option hierarchy
 // of the preference to insert. The start argument is the top of
 // the Nova structure structure.
-function findSection(novaPref, start) {
+function findSection(goplsPref, start) {
     var r = start;
-    var path = novaPref.key.split('.');
-    path.pop();
+    var path = [goplsPrefKey].concat(goplsPref.Hierarchy.split('.'));
     path.forEach((ps) => {
+        var key = `${goplsPrefKey}.${ps}`;
+        var key = ps;
         var section = r.find((i) => {
-            return i.type === 'section' && i.key === ps;
+            return i.type === 'section' && i.key === key;
         });
         if (section === undefined) {
             section = {
-                key: ps,
+                key: key,
                 title: ps,
                 type: 'section',
                 children: [],
@@ -105,7 +100,7 @@ function findSection(novaPref, start) {
 function goplsToNovaPref(goplsPref) {
     if (goplsPref.Status === '' || goplsPref.Status === 'advanced') {
         var novaPref = {
-            key: `gopls.${goplsPref.Hierarchy}.${goplsPref.Name}`,
+            key: `gopls.${goplsPref.Name}`,
             title: goplsPref.Name,
             description: goplsPref.Doc,
         };

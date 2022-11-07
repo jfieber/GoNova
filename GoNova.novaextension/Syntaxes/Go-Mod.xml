@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<syntax name="go-mod">
+	<meta>
+		<name>Go Modules List</name>
+		<type>structured</type>
+		<preferred-file-extension>mod</preferred-file-extension>
+	</meta>
+
+	<detectors>
+		<!-- Mandatory name for go.mod is, well, go.mod -->
+		<filename priority="1.0">go.mod</filename>
+	</detectors>
+
+	<indentation>
+		<increase>
+			<expression>(\([^)\"']*$)</expression>
+		</increase>
+		<decrease>
+			<expression>^\s*(\s*/\*.*\*/\s*)*[\)\\]</expression>
+		</decrease>
+	</indentation>
+
+	<comments>
+		<single>
+			<expression>//</expression>
+		</single>
+	</comments>
+
+	<brackets>
+		<pair open="(" close=")" />
+	</brackets>
+
+	<surrounding-pairs>
+		<pair open="&apos;" close="&apos;" />
+		<pair open="&quot;" close="&quot;" />
+		<pair open="(" close=")" />
+	</surrounding-pairs>
+
+	<tree-sitter language="gomod">
+		<highlights path="gomod-highlights.scm" />
+	</tree-sitter>
+
+</syntax>

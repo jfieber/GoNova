@@ -1,6 +1,6 @@
-const gopls = require('gopls.js');
+import * as gopls from './gopls';
 
-function CreateTasks() {
+export function CreateTasks() {
     let go = gopls.ToolPath('go');
     if (!go) {
         console.warn("Couldn't find go executable");
@@ -34,5 +34,3 @@ function CreateTasks() {
         },
     });
 }
-
-exports.CreateTasks = CreateTasks;

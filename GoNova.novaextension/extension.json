@@ -3,15 +3,15 @@
     "name": "GoNova",
     "organization": "John Fieber",
     "description": "Go for Nova",
-    "version": "1.0",
-    "min_runtime": "7.3",
+    "version": "1.1",
+    "min_runtime": "10",
     "categories": ["languages"],
     "keywords": ["go", "golang"],
     "license": "MIT",
     "repository": "https://github.com/jfieber/GoNova.novaextension",
     "bugs": "https://github.com/jfieber/GoNova.novaextension/issues",
 
-    "main": "main.js",
+    "main": "main.dist.js",
 
     "activationEvents": ["onLanguage:Go", "onWorkspaceContains:*.go"],
 
@@ -20,17 +20,25 @@
         "filesystem": "readwrite"
     },
 
-    "config": "gopls.json",
+    "config": "config.json",
 
     "commands": {
         "extensions": [
             {
-                "title": "Restart Go Language Server",
-                "command": "org.ursamaris.nova.go.cmd.restartGopls"
+                "title": "Install/Update Go Language Server…",
+                "command": "org.ursamaris.nova.go.cmd.goplsInstall"
             },
             {
-                "title": "Install/Update Go Language Server…",
-                "command": "org.ursamaris.nova.go.cmd.installGopls"
+                "title": "Start Server",
+                "command": "org.ursamaris.nova.go.cmd.goplsStart"
+            },
+            {
+                "title": "Stop Server",
+                "command": "org.ursamaris.nova.go.cmd.goplsStop"
+            },
+            {
+                "title": "Restart Server",
+                "command": "org.ursamaris.nova.go.cmd.goplsRestart"
             }
         ],
         "editor": [
