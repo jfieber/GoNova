@@ -2,7 +2,10 @@ import type * as lspTypes from 'vscode-languageserver-protocol';
 
 // Turn a Nova start-end range to an LSP row-column range.
 // From https://github.com/apexskier/nova-typescript
-export function RangeToLspRange(document: TextDocument, range: Range) {
+export function RangeToLspRange(
+    document: TextDocument,
+    range: Range
+): lspTypes.Range | null {
     const fullContents = document.getTextInRange(new Range(0, document.length));
     let chars = 0;
     let startLspRange;
@@ -27,7 +30,10 @@ export function RangeToLspRange(document: TextDocument, range: Range) {
 
 // Turn an LSP row-column range to a Nova start-end range.
 // From https://github.com/apexskier/nova-typescript
-export function LspRangeToRange(document: TextDocument, range: lspTypes.Range) {
+export function LspRangeToRange(
+    document: TextDocument,
+    range: lspTypes.Range
+): Range {
     const lines = document
         .getTextInRange(new Range(0, document.length))
         .split(document.eol);
