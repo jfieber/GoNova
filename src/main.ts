@@ -208,12 +208,17 @@ class GoLanguageServer {
         //
         nova.workspace.onDidAddTextEditor((editor) => {
             editor.onWillSave(async (editor) => {
-                if (editor.document.syntax === 'go') {
+                if (
+                    editor.document.syntax === 'go' ||
+                    editor.document.syntax === 'go-mod'
+                ) {
                     if (nova.config.get(ext.ns('fmtsave'))) {
                         console.log('format on save...');
                         await commands.FormatFile(editor, this.languageClient);
                         console.log('format on save done');
                     }
+                }
+                if (editor.document.syntax === 'go') {
                     if (nova.config.get(ext.ns('impsave'))) {
                         console.log('organizing imports on save...');
                         await commands.OrganizeImports(

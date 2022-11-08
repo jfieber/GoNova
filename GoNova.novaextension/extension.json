@@ -97,7 +97,7 @@
                 "command": "org.ursamaris.nova.go.cmd.formatFile",
                 "when": "editorHasFocus",
                 "filters": {
-                    "syntaxes": ["go"]
+                    "syntaxes": ["go", "go-mod"]
                 }
             }
         ]
