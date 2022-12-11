@@ -1,6 +1,6 @@
 // Extension commands
 import * as commands from './commands';
-import * as ext from './ext';
+import * as config from './config';
 
 // gopls utilities
 import * as gopls from './gopls';
@@ -29,32 +29,17 @@ class GoLanguageServer {
     constructor() {
         this.registerCommands();
 
-        // Observe the configuration setting for the server's location, and restart the
-        // server on change.
-        //
-        // Quirks:
-        //
-        // If the user deletes the value in the preferences and presses
-        // return or tab, it will revert to the default of 'gopls'.
-        // But on the way there, we get called once with with current === null
-        // and again with current === previous, both of which we need to ignore.
-        //
-        // And sometimes we get called a bunch of times with the same value. So
-        // store a value outside of config and only restart if the value actually
-        // changes. The previous value passed by the hook is of no use to us.
-        var goplsPath = nova.config.get(ext.ns('gopls-path'), 'string');
-        nova.config.onDidChange(
-            ext.ns('gopls-path'),
-            async (current: string, _: string) => {
-                if (current && current != goplsPath) {
-                    console.log(
-                        `restarting for gopls path change to ${current}`
-                    );
-                    goplsPath = current;
-                    this.restart();
-                }
-            }
-        );
+        // Observe for when the preferences for either the go or gopls paths change
+        // and restart the language server.
+        let self = this;
+        config.watch(config.keys.GoPath, (name, value) => {
+            console.log(`${name} changed to ${value}`);
+            self.restart();
+        });
+        config.watch(config.keys.GoplsPath, (name, value) => {
+            console.log(`${name} changed to ${value}`);
+            self.restart();
+        });
     }
 
     start(): Promise<void> {
@@ -69,21 +54,38 @@ class GoLanguageServer {
                 return reject();
             }
 
+            // Find go
+            let go = await gopls.GoVersion();
+            if (!go.version || !go.path) {
+                nova.workspace.showWarningMessage(
+                    `Cannot locate go\n\nMake sure it is installed somewhere in $PATH, or provide the full path in the ${nova.extension.name} extension config.`
+                );
+                return reject();
+            }
+            console.log(`Using go ${go.version} at path ${go.path}`);
+
             // Find gopls
-            let vp = await gopls.Version();
+            let vp = await gopls.GoplsVersion();
             if (!vp.path) {
                 nova.workspace.showWarningMessage(
                     `Cannot locate gopls.\n\nMake sure it installed in $GOPATH/bin, somewhere in $PATH, or provide the full path in the ${nova.extension.name} extension config.`
                 );
                 return reject();
             }
-            console.info(`gopls version: ${JSON.stringify(vp)}`);
+            console.log(`Using gopls ${vp.version} at path ${vp.path}`);
 
             // LanguageClient server options
             var serverOptions: ServerOptions = {
                 path: vp.path,
                 args: ['serve'],
+                env: {
+                    PATH: [
+                        nova.path.dirname(go.path),
+                        nova.environment['PATH'],
+                    ].join(':'),
+                },
             };
+
             console.log('server options:', JSON.stringify(serverOptions));
 
             // LanguageClient client options
@@ -171,35 +173,39 @@ class GoLanguageServer {
         //
         // Workspace commands
         //
-        nova.commands.register(ext.ns('cmd.goplsInstall'), (workspace) =>
+        nova.commands.register(config.ns('cmd.goplsInstall'), (workspace) =>
             commands.InstallGopls(workspace, this)
         );
-        nova.commands.register(ext.ns('cmd.goplsStart'), this.start, this);
-        nova.commands.register(ext.ns('cmd.goplsStop'), this.stop, this);
-        nova.commands.register(ext.ns('cmd.goplsRestart'), this.restart, this);
+        nova.commands.register(config.ns('cmd.goplsStart'), this.start, this);
+        nova.commands.register(config.ns('cmd.goplsStop'), this.stop, this);
+        nova.commands.register(
+            config.ns('cmd.goplsRestart'),
+            this.restart,
+            this
+        );
 
         //
         // Editor commands
         //
-        nova.commands.register(ext.ns('cmd.organizeImports'), (editor) =>
+        nova.commands.register(config.ns('cmd.organizeImports'), (editor) =>
             commands.OrganizeImports(editor, this.languageClient)
         );
-        nova.commands.register(ext.ns('cmd.formatFile'), (editor) =>
+        nova.commands.register(config.ns('cmd.formatFile'), (editor) =>
             commands.FormatFile(editor, this.languageClient)
         );
-        nova.commands.register(ext.ns('cmd.findReferences'), (editor) =>
+        nova.commands.register(config.ns('cmd.findReferences'), (editor) =>
             commands.FindReferences(editor, this.languageClient)
         );
-        nova.commands.register(ext.ns('cmd.findImplementations'), (editor) =>
+        nova.commands.register(config.ns('cmd.findImplementations'), (editor) =>
             commands.FindImplementations(editor, this.languageClient)
         );
-        nova.commands.register(ext.ns('cmd.findDefinition'), (editor) =>
+        nova.commands.register(config.ns('cmd.findDefinition'), (editor) =>
             commands.FindDefinition(editor, this.languageClient)
         );
-        nova.commands.register(ext.ns('cmd.findTypeDefinition'), (editor) =>
+        nova.commands.register(config.ns('cmd.findTypeDefinition'), (editor) =>
             commands.FindTypeDefinition(editor, this.languageClient)
         );
-        nova.commands.register(ext.ns('cmd.jumpBack'), () =>
+        nova.commands.register(config.ns('cmd.jumpBack'), () =>
             commands.JumpBack()
         );
 
@@ -212,14 +218,14 @@ class GoLanguageServer {
                     editor.document.syntax === 'go' ||
                     editor.document.syntax === 'go-mod'
                 ) {
-                    if (nova.config.get(ext.ns('fmtsave'))) {
+                    if (config.get(config.keys.FmtSave)) {
                         console.log('format on save...');
                         await commands.FormatFile(editor, this.languageClient);
                         console.log('format on save done');
                     }
                 }
                 if (editor.document.syntax === 'go') {
-                    if (nova.config.get(ext.ns('impsave'))) {
+                    if (config.get(config.keys.ImpSave)) {
                         console.log('organizing imports on save...');
                         await commands.OrganizeImports(
                             editor,

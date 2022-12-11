@@ -72,14 +72,20 @@ export function InstallGopls(workspace: Workspace, gls: any) {
         },
         async (iversion) => {
             if (iversion) {
+                const notification_id = 'gopls-update';
+                let msgInstalling = new NotificationRequest(notification_id);
+                msgInstalling.title = 'Installing gopls';
+                msgInstalling.body = `Installing gopls version ${iversion}…`;
+                nova.notifications.add(msgInstalling);
                 try {
-                    const v = await gopls.Install(iversion);
+                    const v = await gopls.GoplsInstall(iversion);
                     let imsg = `Installed gopls ${v.version} at ${v.path}`;
+                    nova.notifications.cancel(notification_id);
                     workspace.showInformativeMessage(imsg);
                     gls.restart();
-                } catch (e) {
+                } catch (e: any) {
                     workspace.showInformativeMessage(
-                        `Error installing gopls:\n\n${JSON.stringify(e)}`
+                        `Error installing gopls:\n\n${e.stderr}`
                     );
                 }
             }

@@ -1,10 +1,5 @@
 // Grab-bag of extension utilities
 
-// Append an extension config/command name to the extension prefix
-export function ns(name: string): string {
-    return [nova.extension.identifier, name].join('.');
-}
-
 // Promise Logger
 export function plog(prefix: string) {
     return (msg: string) => {

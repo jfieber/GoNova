@@ -3,7 +3,7 @@
     "name": "GoNova",
     "organization": "John Fieber",
     "description": "Go for Nova",
-    "version": "1.1",
+    "version": "1.2",
     "min_runtime": "10",
     "categories": ["languages"],
     "keywords": ["go", "golang"],
@@ -21,6 +21,55 @@
     },
 
     "config": "config.json",
+
+    "configWorkspace": [
+        {
+            "key": "gonova",
+            "title": "Go Nova",
+            "type": "section",
+            "children": [
+                {
+                    "key": "org.ursamaris.nova.go.go-path",
+                    "title": "Go Command",
+                    "description": "The path to the go command. Use an absolute path here if go is not in your search path.",
+                    "type": "path",
+                    "filetype": ["public.unix-executable"],
+                    "placeholder": "Global Default"
+                },
+                {
+                    "key": "org.ursamaris.nova.go.gopls-path",
+                    "title": "Language Server Command",
+                    "link": "https://github.com/golang/tools/blob/master/gopls/README.md",
+                    "description": "The path to the gopls command. Use an absolute path here if gopls is not in your search path.",
+                    "type": "path",
+                    "filetype": ["public.unix-executable"],
+                    "placeholder": "Global Default"
+                },
+                {
+                    "key": "org.ursamaris.nova.go.fmtsave",
+                    "title": "Format on save",
+                    "type": "enum",
+                    "values": [
+                        [null, "Inherit from Global Settings"],
+                        [false, "Disable"],
+                        [true, "Enable"]
+                    ],
+                    "default": null
+                },
+                {
+                    "key": "org.ursamaris.nova.go.impsave",
+                    "title": "Organize imports on save",
+                    "type": "enum",
+                    "values": [
+                        [null, "Inherit from Global Settings"],
+                        [false, "Disable"],
+                        [true, "Enable"]
+                    ],
+                    "default": null
+                }
+            ]
+        }
+    ],
 
     "commands": {
         "extensions": [

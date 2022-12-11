@@ -19,11 +19,20 @@ var novaPreferences = [
         type: 'section',
         children: [
             {
+                key: 'org.ursamaris.nova.go.go-path',
+                title: 'Go Command',
+                description:
+                    'The path to the go command. Use an absolute path here if go is not in your search path.',
+                type: 'path',
+                default: 'go',
+                filetype: ['public.unix-executable'],
+            },
+            {
                 key: 'org.ursamaris.nova.go.gopls-path',
                 title: 'Language Server Command',
                 link: 'https://github.com/golang/tools/blob/master/gopls/README.md',
                 description:
-                    'The command name to start the gopls language server. Use an absolute path here if gopls is not in your search path.',
+                    'The path to the gopls command. Use an absolute path here if gopls is not in your search path.',
                 type: 'path',
                 default: 'gopls',
                 filetype: ['public.unix-executable'],

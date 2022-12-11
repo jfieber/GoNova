@@ -19,7 +19,8 @@
         "vscode-languageserver-types": "^3.17.2"
     },
     "scripts": {
-        "build": "./build.sh"
+        "build": "./build.sh",
+        "buildinstall": "./build.sh && open -a Nova GoNova.novaextension"
     },
     "repository": {
         "type": "git",
